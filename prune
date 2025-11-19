@@ -21,7 +21,7 @@ while read user; do
   
   # Check if user never logged in
   if [[ -z "$last_login" ]]; then
-    echo "Will delete: $user (Never logged in)"
+    echo "Will delete: $user - Never logged in"
     echo "$user" >> "$TEMP_FILE"
     continue
   fi
@@ -45,7 +45,7 @@ while read user; do
   
   # Check if last login was more than 30 days ago
   if [[ $login_epoch -lt $THIRTY_DAYS_AGO ]]; then
-    echo "Will delete: $user (Last login: $login_date)"
+    echo "Will delete: $user - Last login: $login_date"
     echo "$user" >> "$TEMP_FILE"
   fi
 done < <(dscl . list /Users | grep -v '^_')
