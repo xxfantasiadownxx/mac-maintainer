@@ -1,3 +1,5 @@
+# This script removes inactive user accounts and updates the system to the latest version.
+
 #!/bin/bash
 
 echo "================================"
