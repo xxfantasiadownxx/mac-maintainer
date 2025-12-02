@@ -1,4 +1,5 @@
 # This script removes inactive user accounts and updates the system to the latest version.
+# It only works on a single-machine level, being necessary to run on each individual machine.
 
 #!/bin/bash
 
