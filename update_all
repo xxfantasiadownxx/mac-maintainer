@@ -1,4 +1,4 @@
-#v6
+#v12
 
 #!/bin/bash
 
@@ -6,8 +6,10 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IP_LIST="$SCRIPT_DIR/ipaddresses.txt"
 CREDENTIALS="$SCRIPT_DIR/credentials.json"
-UPDATE_SCRIPT="$SCRIPT_DIR/prune_users_and_update_os"
 ERROR_LOG="$SCRIPT_DIR/error_log.txt"
+
+# GitHub raw URL for the update script
+UPDATE_SCRIPT_URL="https://raw.githubusercontent.com/xxfantasiadownxx/scripts/refs/heads/main/update_os"
 
 # Check if required files exist
 if [ ! -f "$IP_LIST" ]; then
@@ -17,11 +19,6 @@ fi
 
 if [ ! -f "$CREDENTIALS" ]; then
     echo "Error: credentials.json not found!"
-    exit 1
-fi
-
-if [ ! -f "$UPDATE_SCRIPT" ]; then
-    echo "Error: prune_users_and_update_os script not found!"
     exit 1
 fi
 
@@ -90,20 +87,8 @@ while IFS= read -r IP || [ -n "$IP" ]; do
             }
         }
         
-        # Execute the update script via bash
-        send \"bash -s\r\"
-        expect -re \"\\\\$|#|%|>\"
-        
-        # Send the script contents
-        set f [open \"$UPDATE_SCRIPT\" r]
-        while {[gets \$f line] >= 0} {
-            send \"\$line\r\"
-            expect -re \"\\\\$|#|%|>\"
-        }
-        close \$f
-        
-        # End the bash -s input with Ctrl+D
-        send \"\004\"
+        # Execute the update script via curl
+        send \"curl -sSf $UPDATE_SCRIPT_URL | bash\r\"
         
         # Wait for completion
         expect {
