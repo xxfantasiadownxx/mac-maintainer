@@ -1,4 +1,4 @@
-#v4
+#v5
 
 #!/bin/bash
 
@@ -56,93 +56,75 @@ while IFS= read -r IP || [ -n "$IP" ]; do
         continue
     fi
     
-    # Create expect script and execute it
-    /usr/bin/expect << EXPECT_SCRIPT > /tmp/ssh_output_$.log 2>&1
-set timeout 60
-set ip "$IP"
-set username "$USERNAME"
-set password "$PASSWORD"
-set port "$PORT"
-set update_script "$UPDATE_SCRIPT"
-
-log_user 1
-
-spawn ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p \$port \${username}@\${ip}
-
-expect {
-    -re "password:|Password:" {
-        send "\$password\r"
+    # SSH and run update script using expect
+    /usr/bin/expect -c "
+        set timeout 120
+        log_user 1
+        
+        spawn ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p $PORT $USERNAME@$IP
+        
         expect {
-            -re "Permission denied|Failed to authenticate" {
-                puts "\\nAUTH_FAILED"
+            -re \"password:|Password:\" {
+                send \"$PASSWORD\r\"
+                expect {
+                    -re \"Permission denied|Failed to authenticate\" {
+                        puts \"AUTH_FAILED\"
+                        exit 1
+                    }
+                    -re \"\\\\$|#|%|>\" {
+                        # Logged in successfully
+                    }
+                    timeout {
+                        puts \"LOGIN_TIMEOUT\"
+                        exit 1
+                    }
+                }
+            }
+            -re \"Permission denied\" {
+                puts \"AUTH_FAILED\"
                 exit 1
             }
-            -re "\\\[\\\$#%>\\\]" {
-                set fp \[open \$update_script r\]
-                set script_content \[read \$fp\]
-                close \$fp
-                
-                send "\$script_content\r"
-                send "exit\r"
-                expect eof
-                exit 0
-            }
             timeout {
-                puts "\\nLOGIN_TIMEOUT"
+                puts \"CONNECTION_TIMEOUT\"
                 exit 1
             }
         }
-    }
-    -re "Permission denied|Failed to authenticate" {
-        puts "\\nAUTH_FAILED"
-        exit 1
-    }
-    timeout {
-        puts "\\nCONNECTION_TIMEOUT"
-        exit 1
-    }
-    eof {
-        puts "\\nCONNECTION_CLOSED"
-        exit 1
-    }
-}
-EXPECT_SCRIPT
+        
+        # Send the update script
+        set f [open \"$UPDATE_SCRIPT\" r]
+        set commands [read \$f]
+        close \$f
+        send \"\$commands\r\"
+        
+        # Wait for completion
+        expect {
+            eof {
+                exit 0
+            }
+            timeout {
+                exit 0
+            }
+        }
+    "
     
-    SSH_EXIT_CODE=$?
+    EXIT_CODE=$?
     
-    # Display output
-    cat /tmp/ssh_output_$$.log
-    
-    # Check for authentication failures
-    if grep -q "AUTH_FAILED" /tmp/ssh_output_$$.log; then
-        echo "ERROR: Authentication failed for $IP"
+    # Check exit code and handle errors
+    if [ $EXIT_CODE -eq 1 ]; then
+        echo "ERROR: Authentication or connection failed for $IP"
         echo "[$(date)] $IP - Failed to authenticate" >> "$ERROR_LOG"
-        rm -f /tmp/ssh_output_$$.log
         continue
     fi
     
-    # Check for connection issues
-    if grep -q "CONNECTION_TIMEOUT\|CONNECTION_CLOSED\|LOGIN_TIMEOUT" /tmp/ssh_output_$$.log; then
-        echo "ERROR: Connection issue for $IP"
-        echo "[$(date)] $IP - Connection issue" >> "$ERROR_LOG"
-        rm -f /tmp/ssh_output_$$.log
+    if [ $EXIT_CODE -ne 0 ]; then
+        echo "ERROR: SSH command failed for $IP"
+        echo "[$(date)] $IP - SSH command failed" >> "$ERROR_LOG"
         continue
     fi
-    
-    # Check SSH exit code
-    if [ $SSH_EXIT_CODE -ne 0 ]; then
-        echo "ERROR: SSH command failed for $IP (exit code: $SSH_EXIT_CODE)"
-        echo "[$(date)] $IP - SSH command failed (exit code: $SSH_EXIT_CODE)" >> "$ERROR_LOG"
-        rm -f /tmp/ssh_output_$$.log
-        continue
-    fi
-    
-    # Clean up temp log
-    rm -f /tmp/ssh_output_$$.log
     
     echo "SUCCESS: $IP processed successfully"
     
-    # Wait a moment before processing next host
+    # Brief pause before next host
     sleep 2
     
 done < "$IP_LIST"
