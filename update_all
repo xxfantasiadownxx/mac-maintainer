@@ -4,7 +4,7 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 IP_LIST="$SCRIPT_DIR/ipaddresses.txt"
 CREDENTIALS="$SCRIPT_DIR/credentials.json"
-UPDATE_SCRIPT="$SCRIPT_DIR/prune_users_and_update_os"
+UPDATE_SCRIPT="$SCRIPT_DIR/update"
 ERROR_LOG="$SCRIPT_DIR/error_log.txt"
 
 # Check if required files exist
