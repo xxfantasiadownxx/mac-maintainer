@@ -1,0 +1,102 @@
+#!/bin/bash
+
+# Configuration
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+IP_LIST="$SCRIPT_DIR/ipaddresses.txt"
+CREDENTIALS="$SCRIPT_DIR/credentials.json"
+UPDATE_SCRIPT="$SCRIPT_DIR/update"
+ERROR_LOG="$SCRIPT_DIR/error_log.txt"
+
+# Check if required files exist
+if [ ! -f "$IP_LIST" ]; then
+    echo "Error: ipaddresses.txt not found!"
+    exit 1
+fi
+
+if [ ! -f "$CREDENTIALS" ]; then
+    echo "Error: credentials.json not found!"
+    exit 1
+fi
+
+if [ ! -f "$UPDATE_SCRIPT" ]; then
+    echo "Error: prune_users_and_update_os script not found!"
+    exit 1
+fi
+
+# Parse credentials from JSON
+USERNAME=$(grep -o '"username"[[:space:]]*:[[:space:]]*"[^"]*"' "$CREDENTIALS" | sed 's/.*"username"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+PASSWORD=$(grep -o '"password"[[:space:]]*:[[:space:]]*"[^"]*"' "$CREDENTIALS" | sed 's/.*"password"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+PORT=$(grep -o '"port"[[:space:]]*:[[:space:]]*[0-9]*' "$CREDENTIALS" | sed 's/.*"port"[[:space:]]*:[[:space:]]*\([0-9]*\).*/\1/')
+
+# Default port if not specified
+if [ -z "$PORT" ]; then
+    PORT=22
+fi
+
+echo "=========================================="
+echo "Starting mass update process"
+echo "Time: $(date)"
+echo "=========================================="
+
+# Process each IP address
+while IFS= read -r IP || [ -n "$IP" ]; do
+    # Skip empty lines
+    [ -z "$IP" ] && continue
+    
+    echo ""
+    echo "Processing: $IP"
+    echo "------------------------------------------"
+    
+    # Test if host is reachable
+    if ! ping -c 1 -W 2 "$IP" &> /dev/null; then
+        echo "ERROR: $IP is not reachable"
+        echo "[$(date)] $IP - Host unreachable" >> "$ERROR_LOG"
+        continue
+    fi
+    
+    # Attempt SSH connection and run update script
+    # Using sshpass for password authentication (install via: brew install sshpass)
+    # Alternative: use SSH key authentication instead
+    
+    if command -v sshpass &> /dev/null; then
+        # Using sshpass method
+        sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p "$PORT" "$USERNAME@$IP" "bash -s" < "$UPDATE_SCRIPT" 2>&1 | tee /tmp/ssh_output_$$.log
+        SSH_EXIT_CODE=${PIPESTATUS[0]}
+    else
+        # Fallback without sshpass (requires SSH keys or will prompt for password)
+        ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -p "$PORT" "$USERNAME@$IP" "bash -s" < "$UPDATE_SCRIPT" 2>&1 | tee /tmp/ssh_output_$$.log
+        SSH_EXIT_CODE=${PIPESTATUS[0]}
+    fi
+    
+    # Check for authentication failures
+    if grep -q "Failed to authenticate\|Permission denied\|Authentication failed" /tmp/ssh_output_$$.log; then
+        echo "ERROR: Authentication failed for $IP"
+        echo "[$(date)] $IP - Failed to authenticate" >> "$ERROR_LOG"
+        rm -f /tmp/ssh_output_$$.log
+        continue
+    fi
+    
+    # Check SSH exit code
+    if [ $SSH_EXIT_CODE -ne 0 ]; then
+        echo "ERROR: SSH command failed for $IP (exit code: $SSH_EXIT_CODE)"
+        echo "[$(date)] $IP - SSH command failed (exit code: $SSH_EXIT_CODE)" >> "$ERROR_LOG"
+        rm -f /tmp/ssh_output_$$.log
+        continue
+    fi
+    
+    # Clean up temp log
+    rm -f /tmp/ssh_output_$$.log
+    
+    echo "SUCCESS: $IP processed successfully"
+    
+    # Wait a moment before processing next host
+    sleep 2
+    
+done < "$IP_LIST"
+
+echo ""
+echo "=========================================="
+echo "Mass update process completed"
+echo "Time: $(date)"
+echo "Check $ERROR_LOG for any errors"
+echo "=========================================="
