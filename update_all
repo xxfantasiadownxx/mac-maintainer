@@ -55,15 +55,10 @@ if [[ ! -f "$UPDATE_OS_FILE" ]]; then
     exit 1
 fi
 
-# Check if sshpass is installed (needed for automated password entry)
-if ! command -v sshpass &> /dev/null; then
-    echo -e "${YELLOW}sshpass not found. Installing via Homebrew...${NC}"
-    if ! command -v brew &> /dev/null; then
-        echo -e "${RED}Error: Homebrew not installed. Please install Homebrew first.${NC}"
-        echo "Visit: https://brew.sh"
-        exit 1
-    fi
-    brew install sshpass
+# Check if expect is installed (should be pre-installed on macOS)
+if ! command -v expect &> /dev/null; then
+    echo -e "${RED}Error: expect not found. This should be pre-installed on macOS.${NC}"
+    exit 1
 fi
 
 # Parse credentials from JSON
@@ -121,9 +116,24 @@ while IFS= read -r ip || [[ -n "$ip" ]]; do
         continue
     fi
     
-    # Test SSH connection
+    # Test SSH connection using expect
     log_info "$ip" "Attempting SSH connection..."
-    if ! sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no -o ConnectTimeout=10 -o BatchMode=no "$USERNAME@$ip" "echo 'Connection test'" &>/dev/null; then
+    ssh_test=$(expect -c "
+        set timeout 10
+        spawn ssh -o StrictHostKeyChecking=no $USERNAME@$ip echo 'Connection test'
+        expect {
+            \"password:\" {
+                send \"$PASSWORD\r\"
+                expect {
+                    \"Connection test\" { exit 0 }
+                    timeout { exit 1 }
+                }
+            }
+            timeout { exit 1 }
+        }
+    " 2>&1)
+    
+    if [[ $? -ne 0 ]]; then
         log_error "$ip" "SSH connection failed"
         failed=$((failed + 1))
         continue
@@ -131,32 +141,93 @@ while IFS= read -r ip || [[ -n "$ip" ]]; do
     
     log_info "$ip" "Connected successfully"
     
-    # Create the script on remote machine
+    # Create the script on remote machine using expect
     log_info "$ip" "Deploying update script..."
-    if ! echo "$AUTOMATED_SCRIPT" | sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$USERNAME@$ip" "cat > $REMOTE_SCRIPT"; then
+    deploy_result=$(expect -c "
+        set timeout 30
+        spawn ssh -o StrictHostKeyChecking=no $USERNAME@$ip
+        expect {
+            \"password:\" {
+                send \"$PASSWORD\r\"
+                expect \"$\" {
+                    send \"cat > $REMOTE_SCRIPT << 'EOFSCRIPT'\r\"
+                    send \"$AUTOMATED_SCRIPT\r\"
+                    send \"EOFSCRIPT\r\"
+                    expect \"$\"
+                    send \"exit\r\"
+                }
+            }
+            timeout { exit 1 }
+        }
+        expect eof
+    " 2>&1)
+    
+    if [[ $? -ne 0 ]]; then
         log_error "$ip" "Failed to create remote script"
         failed=$((failed + 1))
         continue
     fi
     
-    # Make script executable
+    # Make script executable using expect
     log_info "$ip" "Setting executable permissions..."
-    if ! sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no "$USERNAME@$ip" "echo '$PASSWORD' | sudo -S chmod +x $REMOTE_SCRIPT" 2>&1 | grep -qi "authentication failure\|incorrect password"; then
-        :
-    else
+    chmod_result=$(expect -c "
+        set timeout 30
+        spawn ssh -o StrictHostKeyChecking=no $USERNAME@$ip
+        expect {
+            \"password:\" {
+                send \"$PASSWORD\r\"
+                expect \"$\" {
+                    send \"echo '$PASSWORD' | sudo -S chmod +x $REMOTE_SCRIPT\r\"
+                    expect {
+                        \"incorrect password\" { exit 2 }
+                        \"authentication failure\" { exit 2 }
+                        \"$\" { 
+                            send \"exit\r\"
+                            exit 0 
+                        }
+                    }
+                }
+            }
+            timeout { exit 1 }
+        }
+        expect eof
+    " 2>&1)
+    
+    if [[ $? -eq 2 ]]; then
         log_error "$ip" "Failed to authenticate for chmod"
+        failed=$((failed + 1))
+        continue
+    elif [[ $? -ne 0 ]]; then
+        log_error "$ip" "Failed to set permissions"
         failed=$((failed + 1))
         continue
     fi
     
-    # Execute the update script
+    # Execute the update script using expect
     log_info "$ip" "Executing update script (this may take a while)..."
     
-    # Run the script and capture output, checking for authentication failures
-    exec_output=$(sshpass -p "$PASSWORD" ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 "$USERNAME@$ip" "echo '$PASSWORD' | sudo -S bash ./$REMOTE_SCRIPT" 2>&1 || true)
+    exec_result=$(expect -c "
+        set timeout -1
+        spawn ssh -o StrictHostKeyChecking=no -o ServerAliveInterval=60 $USERNAME@$ip
+        expect {
+            \"password:\" {
+                send \"$PASSWORD\r\"
+                expect \"$\" {
+                    send \"echo '$PASSWORD' | sudo -S bash ./$REMOTE_SCRIPT\r\"
+                    expect {
+                        \"incorrect password\" { exit 2 }
+                        \"authentication failure\" { exit 2 }
+                        \"Failed to authenticate\" { exit 2 }
+                        eof { exit 0 }
+                    }
+                }
+            }
+            timeout { exit 1 }
+        }
+    " 2>&1)
     
     # Check for authentication failure
-    if echo "$exec_output" | grep -qi "failed to authenticate\|authentication failure\|incorrect password"; then
+    if [[ $? -eq 2 ]] || echo "$exec_result" | grep -qi "failed to authenticate\|authentication failure\|incorrect password"; then
         log_error "$ip" "Failed to authenticate during script execution"
         failed=$((failed + 1))
         continue
