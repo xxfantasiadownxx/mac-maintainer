@@ -18,3 +18,6 @@ Once it has exited the SSH session, it moves on to the next IP in the list.
 This can target as few or as many as you'd like.
 <br>
 However, running one-by-one could take a very long time for long lists.
+<br>
+<br>
+Alternatively, there is also a script that simply only prunes the users.
