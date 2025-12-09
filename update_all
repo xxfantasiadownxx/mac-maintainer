@@ -1,8 +1,10 @@
-#v19
+# v19
 
 # This script operates on the file ipaddresses.txt which is a list of target IPs to ssh into and update.
 # It will also prune users who haven't logged in within 30 days, reducing the overall user account footprint and freeing up valuable storage.
 # It will move from machine to machine updating, rebooting, and exiting.
+# It functions in a serial manner, meaning it SSH into a single machine at a time.
+# It gets its SSH credentials from credentials.json (which needs to be populated with the appropriate SSH credentials)
 # It will generate an error log at error_log.txt when it encounters any reasons it can't update.
 
 #!/bin/bash
