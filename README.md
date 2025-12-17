@@ -1,18 +1,29 @@
+  <style>
+    .blue {
+      color: blue;
+      font-weight: bold;
+    }
+
+    .green {
+      color: green;
+      font-style: italic;
+    }
+  </style>
 This collection of scripts is intended to update and maintain Mac OS systems on a network.
 <br>
 <br>
 Directory information:
 <br>
-<b>update_os</b> - This is the original script to prune user accounts which have been dormant beyond 30 days and update Mac OS to the latest stable release. After the update process, the machine will restart. This script is also used in <i>parallel_updates</i> and <i>update_all</i>.
+<div class="blue">update_os</div> - This is the original script to prune user accounts which have been dormant beyond 30 days and update Mac OS to the latest stable release. After the update process, the machine will restart. This script is also used in <div class="green">parallel_updates</div> and <div class="green">update_all</div>.
 <br>
-<b>update_p-fv</b> - This script is the same as <i>update_os</i> but adds a function to disable notifications to enable FileVault.
+<div class="blue">update_p-fv</div> - This script is the same as <div class="green">update_os</div> but adds a function to disable notifications to enable FileVault.
 <br>
-<b>update_all</b> - This is a script that sequentially processes updates via <i>ipaddresses.txt</i> and applies the <i>update_os</i> script to each one.
+<div class="blue">update_all</div> - This is a script that sequentially processes updates via <div class="green">ipaddresses.txt</div> and applies the <div class="green">update_os</div> script to each one.
 <br>
-<b>parallel_updates</b> - This is a script that processes 5 parallel updates at once via <i>ipaddresses.txt</i> and applies the <i>update_os</i> script to each one.
+<div class="blue">parallel_updates</div> - This is a script that processes 5 parallel updates at once via <div class="green">ipaddresses.txt</div> and applies the <div class="green">update_os</div> script to each one.
 <br>
-<b>credentials.json</b> - This file holds your credentials for the SSH session used in <i>parallel_updates</i> and <i>update_all</i>. You will need to supply your own credentials before use.
+<div class="blue">credentials.json</div> - This file holds your credentials for the SSH session used in <div class="green">parallel_updates</div> and <div class="green">update_all</div>. You will need to supply your own credentials before use.
 <br>
-<b>ipaddresses.txt</b> - This file holds the target IP addresses for <i>parallel_updates</i> and <i>update_all</i>. You will need to supply your own IPs before use.
+<div class="blue">ipaddresses.txt</div> - This file holds the target IP addresses for <div class="green">parallel_updates</div> and <div class="green">update_all</div>. You will need to supply your own IPs before use.
 <br>
-<b>prune_users</b> - This script simply prunes user accounts which have been dormant beyond 30 days. It is also used within <i>update_os</i>.
+<div class="blue">prune_users</div> - This script simply prunes user accounts which have been dormant beyond 30 days. It is also used within <div class="green">update_os</div>.
