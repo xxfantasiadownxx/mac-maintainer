@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Check FileVault encryption status
+echo "Checking FileVault status..."
+FV_STATUS=$(sudo fdesetup status)
+
+echo "$FV_STATUS"
+echo ""
+
+# Check if FileVault is enabled
+if echo "$FV_STATUS" | grep -q "FileVault is On"; then
+    echo "FileVault is enabled. Starting decryption process..."
+    echo ""
+    
+    # Disable FileVault
+    sudo fdesetup disable
+    
+    if [ $? -eq 0 ]; then
+        echo ""
+        echo "FileVault decryption has been initiated."
+        echo "This process will continue in the background."
+        echo "You can check progress with: sudo fdesetup status"
+    else
+        echo ""
+        echo "Error: Failed to disable FileVault."
+        echo "You may need to provide admin credentials or check permissions."
+        exit 1
+    fi
+else
+    echo "FileVault is not enabled. No decryption needed."
+    exit 0
+fi
