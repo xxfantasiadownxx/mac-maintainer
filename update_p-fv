@@ -1,0 +1,138 @@
+#!/bin/bash
+
+# This script removes inactive user accounts, disables FileVault prompts, and updates the system to the latest version.
+# It only works on a single-machine level, being necessary to run on each individual machine.
+
+echo "================================"
+echo "STEP 1: Pruning Inactive Users"
+echo "================================"
+echo ""
+
+# List of users to exclude from deletion
+EXCLUDE_USERS=("Atlas" "berklgre" "daemon" "nobody" "root" "Support")
+
+# Date 30 days ago in epoch time
+THIRTY_DAYS_AGO=$(date -v-30d +%s)
+
+# Temporary file to store users to delete
+TEMP_FILE=$(mktemp)
+
+# Get all non-system users
+while read user; do
+  # Check if user is in exclusion list
+  if [[ " ${EXCLUDE_USERS[@]} " =~ " ${user} " ]]; then
+    continue
+  fi
+  
+  # Get last login info
+  last_login=$(last -1 "$user" | head -1 | grep -v 'wtmp begins')
+  
+  # Check if user never logged in
+  if [[ -z "$last_login" ]]; then
+    echo "Will delete: $user - Never logged in"
+    echo "$user" >> "$TEMP_FILE"
+    continue
+  fi
+  
+  # Extract the login date from last command output
+  login_date=$(echo "$last_login" | awk '{print $4, $5, $6}')
+  
+  # Check if login shows "still logged in" - these are recent
+  if echo "$last_login" | grep -q "still logged in"; then
+    continue
+  fi
+  
+  # Convert login date to epoch time
+  login_epoch=$(date -j -f "%b %d %H:%M" "$login_date" +%s 2>/dev/null)
+  
+  # If date conversion failed, skip this user
+  if [[ -z "$login_epoch" ]]; then
+    continue
+  fi
+  
+  # Check if last login was more than 30 days ago
+  if [[ $login_epoch -lt $THIRTY_DAYS_AGO ]]; then
+    echo "Will delete: $user - Last login: $login_date"
+    echo "$user" >> "$TEMP_FILE"
+  fi
+done < <(dscl . list /Users | grep -v '^_')
+
+# Display summary
+echo ""
+echo "Users to be deleted:"
+echo "--------------------"
+
+if [[ -s "$TEMP_FILE" ]]; then
+  cat "$TEMP_FILE" | while read user; do
+    echo "  - $user"
+  done
+  
+  echo ""
+  read -p "Do you want to proceed with deleting these users? (yes/no): " confirm
+  
+  if [[ "$confirm" == "yes" ]]; then
+    while read user; do
+      echo "Deleting user: $user"
+      sudo sysadminctl -deleteUser "$user"
+    done < "$TEMP_FILE"
+    echo "User deletion complete!"
+  else
+    echo "User deletion cancelled."
+    rm "$TEMP_FILE"
+    exit 0
+  fi
+else
+  echo "  (No users to delete)"
+fi
+
+# Clean up temp file
+rm "$TEMP_FILE"
+
+echo ""
+echo "========================================"
+echo "STEP 2: Disabling FileVault Prompts"
+echo "========================================"
+echo ""
+
+echo "Disabling FileVault setup notification prompts..."
+sudo defaults write /Library/Preferences/com.apple.MCXNotifications.plist FileVaultSetup -bool FALSE
+
+# Kill the notification center to apply changes
+killall NotificationCenter 2>/dev/null || true
+
+echo "FileVault notification prompts have been disabled."
+
+echo ""
+echo "================================"
+echo "STEP 3: Checking for macOS Updates"
+echo "================================"
+echo ""
+
+# Check for available updates
+echo "Searching for available software updates..."
+UPDATE_OUTPUT=$(softwareupdate -l 2>&1)
+
+# Extract the label (looks for lines starting with "* Label:")
+UPDATE_LABEL=$(echo "$UPDATE_OUTPUT" | grep "^\* Label:" | head -1 | sed 's/^\* Label: //')
+
+if [[ -z "$UPDATE_LABEL" ]]; then
+  echo "No macOS updates found."
+  echo ""
+  echo "$UPDATE_OUTPUT"
+else
+  echo "Found update: $UPDATE_LABEL"
+  echo ""
+  read -p "Do you want to install this update and restart? (yes/no): " update_confirm
+  
+  if [[ "$update_confirm" == "yes" ]]; then
+    echo ""
+    echo "Installing update: $UPDATE_LABEL"
+    echo "The system will restart after installation..."
+    sudo softwareupdate -i "$UPDATE_LABEL" --restart
+  else
+    echo "Update installation cancelled."
+  fi
+fi
+
+echo ""
+echo "Script complete!"
