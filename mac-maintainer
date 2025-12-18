@@ -87,7 +87,6 @@ prune_users() {
   # Clean up temp file
   rm "$TEMP_FILE"
   echo ""
-  clear
 }
 
 # Function to check FileVault encryption status
@@ -108,7 +107,6 @@ check_filevault() {
     echo "✗ FileVault is NOT enabled. Disk is not encrypted."
   fi
   echo ""
-  clear
 }
 
 # Function to disable FileVault prompts
@@ -126,7 +124,6 @@ disable_filevault_prompts() {
 
   echo "FileVault notification prompts have been disabled."
   echo ""
-  clear
 }
 
 # Function to check for macOS updates
@@ -162,7 +159,6 @@ check_updates() {
     fi
   fi
   echo ""
-  clear
 }
 
 # Function to check currently logged in users
@@ -174,11 +170,11 @@ check_logged_in_users() {
   echo "The ssers currently logged into this system are: "
   who
   echo ""
-  clear
 }
 
 # Main menu
 show_menu() {
+  clear
   echo ""
   echo "========================================"
   echo "        macOS Maintenance Script"
