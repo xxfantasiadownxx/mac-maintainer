@@ -78,8 +78,6 @@ if [[ -s "$TEMP_FILE" ]]; then
     echo "User deletion complete!"
   else
     echo "User deletion cancelled."
-    rm "$TEMP_FILE"
-    exit 0
   fi
 else
   echo "  (No users to delete)"
