@@ -42,9 +42,9 @@ boot_user() {
   echo "The users currently logged into this system are: "
   who
   echo ""
-  read -p "Who would you like to boot?" bootuser
+  read -p "Who would you like to boot? " bootuser
   echo "Booting the user $bootuser"
-  sudo launchctl bootout user/$(id -u $bootuser)
+  sudo pkill -9 -u $bootuser
 }
 
 prune_users() {
