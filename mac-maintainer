@@ -33,6 +33,21 @@ check_logged_in_users() {
   echo ""
 }
 
+# Function to boot currently logged in users
+boot_user() {
+  echo "========================================"
+  echo "      Boot a user from the system"
+  echo "========================================"
+  echo ""
+  echo "The users currently logged into this system are: "
+  who
+  echo ""
+  read -p "Who would you like to boot?" bootuser
+  echo "Booting the user $bootuser"
+  sudo launchctl bootout user/$(id -u $bootuser)
+
+}
+
 prune_users() {
   echo "========================================"
   echo "     Pruning Inactive User Accounts"
@@ -202,11 +217,12 @@ show_menu() {
   echo "1. Uninstall Papercut"
   echo "2. Rename the Mac"
   echo "3. Check users currently logged in to system"
-  echo "4. Prune user accounts that haven't logged in for 30+ days"
-  echo "5. Check for FileVault disk encryption"
-  echo "6. Disable FileVault notifications"
-  echo "7. Check for macOS updates"
-  echo "8. Prune, Disable FileVault Notifications, and Update macOS"
+  echo "4. Boot a specific user from the system"
+  echo "5. Prune user accounts that haven't logged in for 30+ days"
+  echo "6. Check for FileVault disk encryption"
+  echo "7. Disable FileVault notifications"
+  echo "8. Check for macOS updates"
+  echo "9. Prune, Disable FileVault Notifications, and Update macOS"
   echo "0. Exit and delete this script"
   echo ""
   read -p "What function would you like to perform? " choice
@@ -228,18 +244,21 @@ while true; do
       check_logged_in_users
       ;;
     4)
-      prune_users
+      boot_user
       ;;
     5)
-      check_filevault
+      prune_users
       ;;
     6)
-      disable_filevault_prompts
+      check_filevault
       ;;
     7)
-      check_updates
+      disable_filevault_prompts
       ;;
     8)
+      check_updates
+      ;;
+    9)
       prune_users
       disable_filevault_prompts
       check_logged_in_users
