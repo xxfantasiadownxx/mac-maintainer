@@ -4,7 +4,6 @@
 
 # Function to prune inactive users
 prune_users() {
-  clear
   echo "========================================"
   echo "     Pruning Inactive User Accounts"
   echo "========================================"
@@ -92,7 +91,6 @@ prune_users() {
 
 # Function to check FileVault encryption status
 check_filevault() {
-  clear
   echo "========================================"
   echo "  Checking FileVault Encryption Status"
   echo "========================================"
@@ -113,7 +111,6 @@ check_filevault() {
 
 # Function to disable FileVault prompts
 disable_filevault_prompts() {
-  clear
   echo "========================================"
   echo "    Disabling FileVault Notification"
   echo "========================================"
@@ -131,7 +128,6 @@ disable_filevault_prompts() {
 
 # Function to check for macOS updates
 check_updates() {
-  clear
   echo "========================================"
   echo "       Checking for macOS Updates"
   echo "========================================"
@@ -167,7 +163,6 @@ check_updates() {
 
 # Function to check currently logged in users
 check_logged_in_users() {
-  clear
   echo "========================================"
   echo "        Checking Users Logged In"
   echo "========================================"
