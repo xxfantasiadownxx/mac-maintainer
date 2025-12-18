@@ -8,7 +8,6 @@ uninstall_papercut() {
   echo "           Uninstall Papercut"
   echo "========================================"
   echo ""
-  echo "The users currently logged into this system are: "
   sudo "/Applications/PaperCut Print Deploy Client/Uninstall.command"
 }
 
@@ -21,6 +20,17 @@ rename_device() {
   SERIAL=$(ioreg -l | grep IOPlatformSerialNumber | awk '{print $4}' | sed 's/"//g')
   echo "Currently renaming the Mac to WCPS-$SERIAL"
   sudo scutil --set ComputerName "WCPS-$SERIAL" && sudo scutil --set LocalHostName "WCPS-$SERIAL" && sudo scutil --set HostName "WCPS-$SERIAL"
+}
+
+# Function to check currently logged in users
+check_logged_in_users() {
+  echo "========================================"
+  echo "        Checking Users Logged In"
+  echo "========================================"
+  echo ""
+  echo "The users currently logged into this system are: "
+  who
+  echo ""
 }
 
 prune_users() {
@@ -146,17 +156,6 @@ disable_filevault_prompts() {
   echo ""
 }
 
-# Function to check currently logged in users
-check_logged_in_users() {
-  echo "========================================"
-  echo "        Checking Users Logged In"
-  echo "========================================"
-  echo ""
-  echo "The users currently logged into this system are: "
-  who
-  echo ""
-}
-
 # Function to check for macOS updates
 check_updates() {
   echo "========================================"
@@ -202,10 +201,10 @@ show_menu() {
   echo ""
   echo "1. Uninstall Papercut"
   echo "2. Rename the Mac"
-  echo "3. Prune user accounts that haven't logged in for 30+ days"
-  echo "4. Check for FileVault disk encryption"
-  echo "5. Disable FileVault notifications"
-  echo "6. Check currently logged in users"
+  echo "4. Check currently logged in users"
+  echo "5. Prune user accounts that haven't logged in for 30+ days"
+  echo "6. Check for FileVault disk encryption"
+  echo "7. Disable FileVault notifications"
   echo "7. Check for macOS updates"
   echo "8. Prune, Disable FileVault Notifications, and Update macOS"
   echo "0. Exit"
@@ -226,16 +225,16 @@ while true; do
       rename_device
       ;;
     3)
-      prune_users
+      check_logged_in_users
       ;;
     4)
-      check_filevault
+      prune_users
       ;;
     5)
-      disable_filevault_prompts
+      check_filevault
       ;;
     6)
-      check_logged_in_users
+      disable_filevault_prompts
       ;;
     7)
       check_updates
