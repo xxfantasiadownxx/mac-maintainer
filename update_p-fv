@@ -104,7 +104,17 @@ echo "FileVault notification prompts have been disabled."
 
 echo ""
 echo "========================================"
-echo "STEP 3: Checking for macOS Updates"
+echo "STEP 3: Checking users logged in."
+echo "========================================"
+  echo ""
+  echo ""
+  echo "Users currently logged in are: " && who
+  echo ""
+  echo ""
+
+echo ""
+echo "========================================"
+echo "STEP 4: Checking for macOS Updates"
 echo "========================================"
 echo ""
 
@@ -120,11 +130,6 @@ if [[ -z "$UPDATE_LABEL" ]]; then
   echo ""
   echo "$UPDATE_OUTPUT"
 else
-  echo ""
-  echo ""
-  echo "Users currently logged in are: " && who
-  echo ""
-  echo ""
   echo "Found update: $UPDATE_LABEL"
   echo ""
   read -p "Do you want to install this update and restart? (yes/no): " update_confirm
