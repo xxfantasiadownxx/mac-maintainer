@@ -14,7 +14,7 @@ uninstall_papercut() {
 # Function to rename device based on serial
 rename_device() {
   echo "========================================"
-  echo "             Rename the Mac             "
+  echo "             Rename the Mac"
   echo "========================================"
   echo ""
   SERIAL=$(ioreg -l | grep IOPlatformSerialNumber | awk '{print $4}' | sed 's/"//g')
