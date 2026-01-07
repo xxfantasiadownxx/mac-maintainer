@@ -17,8 +17,8 @@ rename_device() {
   echo "             Rename the Mac"
   echo "========================================"
   echo ""
+  read -p "What prefix would you like to have before the serial number? " prefix
   SERIAL=$(ioreg -l | grep IOPlatformSerialNumber | awk '{print $4}' | sed 's/"//g')
-  read "What prefix would you like to have before the serial number?" prefix
   echo "Currently renaming the Mac to $prefix-$SERIAL"
   sudo scutil --set ComputerName "$prefix-$SERIAL" && sudo scutil --set LocalHostName "$prefix-$SERIAL" && sudo scutil --set HostName "$prefix-$SERIAL"
 }
