@@ -18,8 +18,9 @@ rename_device() {
   echo "========================================"
   echo ""
   SERIAL=$(ioreg -l | grep IOPlatformSerialNumber | awk '{print $4}' | sed 's/"//g')
-  echo "Currently renaming the Mac to WCPS-$SERIAL"
-  sudo scutil --set ComputerName "WCPS-$SERIAL" && sudo scutil --set LocalHostName "WCPS-$SERIAL" && sudo scutil --set HostName "WCPS-$SERIAL"
+  read "What prefix would you like to have before the serial number?" prefix
+  echo "Currently renaming the Mac to $prefix-$SERIAL"
+  sudo scutil --set ComputerName "$prefix-$SERIAL" && sudo scutil --set LocalHostName "$prefix-$SERIAL" && sudo scutil --set HostName "$prefix-$SERIAL"
 }
 
 # Option 3 - Function to check currently logged in users.
@@ -211,7 +212,7 @@ check_updates() {
 # Function to change a users password
 change_user_password() {
   echo "========================================"
-  echo "        Change a user's password        "
+  echo "        Change a user's password"
   echo "========================================"
   echo ""
   echo "These are all the user accounts on the system: "
