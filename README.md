@@ -1,5 +1,5 @@
 <h2>Overview</h2>
-Mac Maintainer is a collection of tools is intended to update and maintain Mac OS systems on a network.
+Mac Maintainer is a collection of tools is intended to update and maintain Mac OS systems.
 <p></p>
 <h2>Tasks Mac Maintainer can complete</h2>
 <p></p>
