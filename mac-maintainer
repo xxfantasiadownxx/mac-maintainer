@@ -255,10 +255,10 @@ show_menu() {
   echo ""
   echo "0. Exit and delete this script"
   echo ""
-  read -p "What function would you like to perform? " choice
-  echo ""
   echo ""
   echo "Current macOS version is $(sw_vers -productVersion)"
+  echo ""
+  read -p "What function would you like to perform? " choice
 }
 
 # Main script execution
