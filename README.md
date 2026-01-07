@@ -3,22 +3,22 @@ Mac Maintainer is a collection of tools is intended to update and maintain Mac O
 <p></p>
 <h2>Tasks Mac Maintainer can complete</h2>
 <p></p>
-<h3>Remove Papercut</h3>
+Remove Papercut
 <br>
-<h3>Rename the device hostname based on a predefined prefix of your choosing and the device's serial number.</h3>
+Rename the device hostname based on a predefined prefix of your choosing and the device's serial number.
 <br>
-<h3>Check users logged on to the system using the <i>who</i> command.</h3>
+Check users logged on to the system using the <i>who</i> command.
 <br>
-<h3>Boot a specific user from the machine based on a list of current uses, again <i>who</i>, followed by a pkill command.</h3>
+Boot a specific user from the machine based on a list of current uses, again <i>who</i>, followed by a pkill command.
 <br>
-<h3>Prune user accounts that have not logged in in over 30 days.</h3>
+Prune user accounts that have not logged in in over 30 days.
 <br>
-<h3>Check for Filevault Disk Encryption.</h3>
+Check for Filevault Disk Encryption.
 <br>
-<h3>Disable notifications regarding Filevault encryption.</h3>
+Disable notifications regarding Filevault encryption.
 <br>
-<h3>Check for macOS updates and apply them.</h3>
+Check for macOS updates and apply them.
 <br>
-<h3>Update a user's password. This comes from a list of active user accounts and is enacted via Apple's built-in /usr/bin/pwpolicy tool. [Admin rights required]</h3>
+Update a user's password. This comes from a list of active user accounts and is enacted via Apple's built-in /usr/bin/pwpolicy tool. [Admin rights required]
 <br>
-<h3>Finally, a combination of Prune, Disable FileVault Notifications, and Update macOS.</h3>
+Finally, a combination of Prune, Disable FileVault Notifications, and Update macOS.
