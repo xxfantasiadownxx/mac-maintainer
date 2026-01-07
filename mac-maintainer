@@ -2,7 +2,7 @@
 
 # Interactive macOS Maintenance Script
 
-# Function to uninstall Papercut
+# Option 1 - Function to uninstall Papercut.
 uninstall_papercut() {
   echo "========================================"
   echo "           Uninstall Papercut"
@@ -11,7 +11,7 @@ uninstall_papercut() {
   sudo "/Applications/PaperCut Print Deploy Client/Uninstall.command"
 }
 
-# Function to rename device based on serial
+# Option 2 - Function to rename device based on serial.
 rename_device() {
   echo "========================================"
   echo "             Rename the Mac"
@@ -22,7 +22,7 @@ rename_device() {
   sudo scutil --set ComputerName "WCPS-$SERIAL" && sudo scutil --set LocalHostName "WCPS-$SERIAL" && sudo scutil --set HostName "WCPS-$SERIAL"
 }
 
-# Function to check currently logged in users
+# Option 3 - Function to check currently logged in users.
 check_logged_in_users() {
   echo "========================================"
   echo "        Checking Users Logged In"
@@ -33,7 +33,7 @@ check_logged_in_users() {
   echo ""
 }
 
-# Function to boot currently logged in users
+# Option 4 - Function to boot currently logged in users.
 boot_user() {
   echo "========================================"
   echo "      Boot a user from the system"
@@ -47,6 +47,7 @@ boot_user() {
   sudo pkill -9 -u $bootuser
 }
 
+# Option 5 - Prune Inactive User Accounts.
 prune_users() {
   echo "========================================"
   echo "     Pruning Inactive User Accounts"
@@ -133,7 +134,7 @@ prune_users() {
   echo ""
 }
 
-# Function to check FileVault encryption status
+# Option 6 - Function to check FileVault encryption status
 check_filevault() {
   echo "========================================"
   echo "  Checking FileVault Encryption Status"
@@ -153,7 +154,7 @@ check_filevault() {
   echo ""
 }
 
-# Function to disable FileVault prompts
+# Option 7 - Function to disable FileVault prompts
 disable_filevault_prompts() {
   echo "========================================"
   echo "    Disabling FileVault Notification"
@@ -170,7 +171,7 @@ disable_filevault_prompts() {
   echo ""
 }
 
-# Function to check for macOS updates
+# Option 8 - Function to check for macOS updates
 check_updates() {
   echo "========================================"
   echo "       Checking for macOS Updates"
@@ -208,19 +209,29 @@ check_updates() {
 }
 
 # Function to change a users password
-#change_user_password() {
-#  echo "========================================"
-#  echo "        Change a user's password        "
-#  echo "========================================"
-#  echo ""
-#  echo "These are all the user accounts on the system: "
-#  dscl . list /Users | grep -v "^_"
-#  current_user=$(whoami)
-#  echo ""
-#  read -p "Whose password would you like to change? " changepw
-#  echo "Booting the user $bootuser"
-#  sudo pkill -9 -u $bootuser
-#}
+change_user_password() {
+  echo "========================================"
+  echo "        Change a user's password        "
+  echo "========================================"
+  echo ""
+  echo "These are all the user accounts on the system: "
+  dscl . list /Users | grep -v "^_"
+  echo ""
+  echo "You are currently logged in as: $(whoami)"
+  echo ""
+  read -p "Whose password would you like to change? " changepw
+  echo ""
+  echo "You are intending to change the password for user: $changepw"
+  read -p "Please confirm this process? (yes/no): " confirm
+    if [[ "$confirm" == "yes" ]]; then
+      whoiam=$(whoami)
+      echo ""
+      /usr/bin/pwpolicy -a $whoiam -u $changepw -setpassword
+      echo "Password change complete!"
+    else
+      echo "Password change cancelled."
+    fi
+}
 
 # Main menu
 show_menu() {
@@ -239,7 +250,7 @@ show_menu() {
   echo "7. Disable FileVault notifications"
   echo "8. Check for macOS updates"
   echo "9. Prune, Disable FileVault Notifications, and Update macOS"
- # echo "10. Update my password"
+  echo "10. Update my password"
   echo "0. Exit and delete this script"
   echo ""
   read -p "What function would you like to perform? " choice
@@ -285,6 +296,9 @@ while true; do
       echo "========================================"
       echo "           All tasks complete"
       echo "========================================"
+      ;;
+    10)
+      change_user_password
       ;;
     0)
       echo "Deleting script and exiting..."
