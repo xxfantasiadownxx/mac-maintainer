@@ -220,18 +220,24 @@ change_user_password() {
   echo ""
   echo "You are currently logged in as: $(whoami)"
   echo ""
-  read -p "Whose password would you like to change? " changepw
+  read -p "Which user's password do you want to change? " changepw
   echo ""
-  echo "You are intending to change the password for user: $changepw"
-  read -p "Please confirm this process? (yes/no): " confirm
+  
+  # Check if the user exists in the system
+  if dscl . list /Users | grep -v "^_" | grep -q "^${changepw}$"; then
+    echo "You are intending to change the password for user: $changepw"
+    read -p "Please confirm this process? (yes/no): " confirm
     if [[ "$confirm" == "yes" ]]; then
       whoiam=$(whoami)
       echo ""
       /usr/bin/pwpolicy -a $whoiam -u $changepw -setpassword
-      echo "Password change complete!"
+      echo "Task complete!"
     else
       echo "Password change cancelled."
     fi
+  else
+    echo "no user by that name"
+  fi
 }
 
 # Main menu
