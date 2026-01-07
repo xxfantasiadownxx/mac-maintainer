@@ -250,7 +250,8 @@ show_menu() {
   echo "7. Disable FileVault notifications"
   echo "8. Check for macOS updates"
   echo "9. Prune, Disable FileVault Notifications, and Update macOS"
-  echo "10. Update my password"
+  echo "10. Update a user's password"
+  echo ""
   echo "0. Exit and delete this script"
   echo ""
   read -p "What function would you like to perform? " choice
