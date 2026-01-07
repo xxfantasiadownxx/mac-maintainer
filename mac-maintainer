@@ -249,8 +249,8 @@ show_menu() {
   echo "6. Check for FileVault disk encryption"
   echo "7. Disable FileVault notifications"
   echo "8. Check for macOS updates"
-  echo "9. Prune, Disable FileVault Notifications, and Update macOS"
-  echo "10. Update a user's password"
+  echo "9. Update a user's password"
+  echo "10. Prune, Disable FileVault Notifications, and Update macOS"
   echo ""
   echo "0. Exit and delete this script"
   echo ""
@@ -290,6 +290,9 @@ while true; do
       check_updates
       ;;
     9)
+      change_user_password
+      ;;
+    10)
       prune_users
       disable_filevault_prompts
       check_logged_in_users
@@ -297,9 +300,6 @@ while true; do
       echo "========================================"
       echo "           All tasks complete"
       echo "========================================"
-      ;;
-    10)
-      change_user_password
       ;;
     0)
       echo "Deleting script and exiting..."
