@@ -1,18 +1,24 @@
 <h2>Overview</h2>
-This collection of scripts is intended to update and maintain Mac OS systems on a network.
+Mac Maintainer is a collection of tools is intended to update and maintain Mac OS systems on a network.
 <p></p>
-<h2>File information</h2>
+<h2>Tasks Mac Maintainer can complete</h2>
 <p></p>
-<h3>update_os</h3> This is the original script to prune user accounts which have been dormant beyond 30 days and update Mac OS to the latest stable release. After the update process, the machine will restart. This script is also used in <i>update_all</i> and <i>parallel_updates</i>.
+<h3>Remove Papercut</h3>
 <br>
-<h3>update_p-fv</h3> This script is the same as <i>update_os</i> but adds a function to disable notifications to enable FileVault.
+<h3>Rename the device hostname based on a predefined prefix of your choosing and the device's serial number.</h3>
 <br>
-<h3>update_all</h3> This is a script that sequentially processes updates via <i>ipaddresses.txt</i> and applies the <i>update_os</i> script to each one.
+<h3>Check users logged on to the system using the <i>who</i> command.</h3>
 <br>
-<h3>parallel_updates</h3> This is a script that processes 5 parallel updates at once via <i>ipaddresses.txt</i> and applies the <i>update_os</i> script to each one.
+<h3>Boot a specific user from the machine based on a list of current uses, again <i>who</i>, followed by a pkill command.</h3>
 <br>
-<h3>credentials.json</h3> This file holds your credentials for the SSH session used in <i>update_all</i> and <i>parallel_updates</i>. You will need to supply your own credentials before use.
+<h3>Prune user accounts that have not logged in in over 30 days.</h3>
 <br>
-<h3>ipaddresses.txt</h3> This file holds the target IP addresses for <i>update_all</i> and <i>parallel_updates</i>. You will need to supply your own IPs before use.
+<h3>Check for Filevault Disk Encryption.</h3>
 <br>
-<h3>prune_users</h3> This script simply prunes user accounts which have been dormant beyond 30 days. It is also used within <i>update_os</i>.
+<h3>Disable notifications regarding Filevault encryption.</h3>
+<br>
+<h3>Check for macOS updates and apply them.</h3>
+<br>
+<h3>Update a user's password. This comes from a list of active user accounts and is enacted via Apple's built-in /usr/bin/pwpolicy tool. [Admin rights required]</h3>
+<br>
+<h3>Finally, a combination of Prune, Disable FileVault Notifications, and Update macOS.</h3>
