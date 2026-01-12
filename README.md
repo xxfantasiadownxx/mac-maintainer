@@ -15,3 +15,8 @@ Mac Maintainer is a collection of tools is intended to update and maintain Mac O
   <li>Update a user's password. This comes from a list of active user accounts and is enacted via Apple's built-in /usr/bin/pwpolicy tool. [Admin rights required]</li>
   <li>Finally, a combination of Prune, Disable FileVault Notifications, and Update macOS.</li>
 </ul>
+
+<p>To install and run:</p>
+```
+curl -L -O https://raw.githubusercontent.com/xxfantasiadownxx/mac-maintainer/refs/heads/main/mac-maintainer && chmod +x mac-maintainer && sudo bash ./mac-maintainer
+```
