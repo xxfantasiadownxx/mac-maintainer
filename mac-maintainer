@@ -17,10 +17,17 @@ rename_device() {
   echo "             Rename the Mac"
   echo "========================================"
   echo ""
-  read -p "What prefix would you like to have before the serial number? " prefix
-  SERIAL=$(ioreg -l | grep IOPlatformSerialNumber | awk '{print $4}' | sed 's/"//g')
-  echo "Currently renaming the Mac to $prefix-$SERIAL"
-  sudo scutil --set ComputerName "$prefix-$SERIAL" && sudo scutil --set LocalHostName "$prefix-$SERIAL" && sudo scutil --set HostName "$prefix-$SERIAL"
+  echo "Current hostname: $(hostname)"
+  read -p "Would you like to rename this machine? " confirm_rename
+  if [[ "$confirm_rename" == "yes" ]]; then
+    echo ""
+    read -p "What prefix would you like to have before the serial number? " prefix
+    SERIAL=$(ioreg -l | grep IOPlatformSerialNumber | awk '{print $4}' | sed 's/"//g')
+    echo "Currently renaming the Mac to $prefix-$SERIAL"
+    sudo scutil --set ComputerName "$prefix-$SERIAL" && sudo scutil --set LocalHostName "$prefix-$SERIAL" && sudo scutil --set HostName "$prefix-$SERIAL"
+  else
+    echo "Renaming cancelled."
+  fi
 }
 
 # Option 3 - Function to check currently logged in users.
@@ -178,20 +185,24 @@ check_updates() {
   echo "       Checking for macOS Updates"
   echo "========================================"
   echo ""
-
   # Check for available updates
   echo "Searching for available software updates..."
   UPDATE_OUTPUT=$(softwareupdate -l 2>&1)
-
-  # Extract the label (looks for lines starting with "* Label:")
-  UPDATE_LABEL=$(echo "$UPDATE_OUTPUT" | grep "^\* Label:" | head -1 | sed 's/^\* Label: //')
-
+  
+  # Extract only macOS updates (lines starting with "* Label:" and containing "macOS")
+  UPDATE_LABEL=$(echo "$UPDATE_OUTPUT" | grep "^\* Label:" | grep "macOS" | head -1 | sed 's/^\* Label: //')
+  
   if [[ -z "$UPDATE_LABEL" ]]; then
     echo "No macOS updates found."
     echo ""
-    echo "$UPDATE_OUTPUT"
+    # Optionally show what other updates are available
+    OTHER_UPDATES=$(echo "$UPDATE_OUTPUT" | grep "^\* Label:" | sed 's/^\* Label: //')
+    if [[ -n "$OTHER_UPDATES" ]]; then
+      echo "Other available updates (non-macOS):"
+      echo "$OTHER_UPDATES"
+    fi
   else
-    echo "Found update: $UPDATE_LABEL"
+    echo "Found macOS update: $UPDATE_LABEL"
     echo ""
     read -p "Do you want to install this update and restart? (yes/no): " update_confirm
     
