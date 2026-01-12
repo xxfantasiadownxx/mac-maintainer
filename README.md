@@ -16,7 +16,7 @@ Mac Maintainer is a collection of tools is intended to update and maintain Mac O
   <li>Finally, a combination of Prune, Disable FileVault Notifications, and Update macOS.</li>
 </ul>
 
-<p>To install and run:</p>
+<h2>To install and run:</h2>
 
 ```bash
 curl -L -O https://raw.githubusercontent.com/xxfantasiadownxx/mac-maintainer/refs/heads/main/mac-maintainer && chmod +x mac-maintainer && sudo bash ./mac-maintainer
