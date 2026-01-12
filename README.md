@@ -17,6 +17,7 @@ Mac Maintainer is a collection of tools is intended to update and maintain Mac O
 </ul>
 
 <p>To install and run:</p>
+
 ```bash
 curl -L -O https://raw.githubusercontent.com/xxfantasiadownxx/mac-maintainer/refs/heads/main/mac-maintainer && chmod +x mac-maintainer && sudo bash ./mac-maintainer
 ```
