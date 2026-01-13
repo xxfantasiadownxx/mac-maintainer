@@ -55,7 +55,38 @@ boot_user() {
   sudo pkill -9 -u $bootuser
 }
 
-# Option 5 - Prune Inactive User Accounts.
+# Option 5 - Function to change a users password
+change_user_password() {
+  echo "========================================"
+  echo "        Change a user's password"
+  echo "========================================"
+  echo ""
+  echo "These are all the user accounts on the system: "
+  dscl . list /Users | grep -v "^_"
+  echo ""
+  echo "You are currently logged in as: $(whoami)"
+  echo ""
+  read -p "Which user's password do you want to change? " changepw
+  echo ""
+  
+  # Check if the user exists in the system
+  if dscl . list /Users | grep -v "^_" | grep -q "^${changepw}$"; then
+    echo "You are intending to change the password for user: $changepw"
+    read -p "Please confirm this process? (yes/no): " confirm
+    if [[ "$confirm" == "yes" ]]; then
+      whoiam=$(whoami)
+      echo ""
+      /usr/bin/pwpolicy -a $whoiam -u $changepw -setpassword
+      echo "Task complete!"
+    else
+      echo "Password change cancelled."
+    fi
+  else
+    echo "no user by that name"
+  fi
+}
+
+# Option 6 - Prune Inactive User Accounts.
 prune_users() {
   echo "========================================"
   echo "     Pruning Inactive User Accounts"
@@ -142,7 +173,7 @@ prune_users() {
   echo ""
 }
 
-# Option 6 - Function to check FileVault encryption status
+# Option 7 - Function to check FileVault encryption status
 check_filevault() {
   echo "========================================"
   echo "  Checking FileVault Encryption Status"
@@ -162,7 +193,7 @@ check_filevault() {
   echo ""
 }
 
-# Option 7 - Function to disable FileVault prompts
+# Option 8 - Function to disable FileVault prompts
 disable_filevault_prompts() {
   echo "========================================"
   echo "    Disabling FileVault Notification"
@@ -179,7 +210,7 @@ disable_filevault_prompts() {
   echo ""
 }
 
-# Option 8 - Function to check for macOS updates
+# Option 9 - Function to check for macOS updates
 check_updates() {
   echo "========================================"
   echo "       Checking for macOS Updates"
@@ -220,34 +251,21 @@ check_updates() {
   echo ""
 }
 
-# Function to change a users password
-change_user_password() {
+# Option 10 - Function to check for specifically defined macOS update name
+specific_update() {
   echo "========================================"
-  echo "        Change a user's password"
+  echo "       Update to a specific build"
   echo "========================================"
   echo ""
-  echo "These are all the user accounts on the system: "
-  dscl . list /Users | grep -v "^_"
-  echo ""
-  echo "You are currently logged in as: $(whoami)"
-  echo ""
-  read -p "Which user's password do you want to change? " changepw
-  echo ""
-  
-  # Check if the user exists in the system
-  if dscl . list /Users | grep -v "^_" | grep -q "^${changepw}$"; then
-    echo "You are intending to change the password for user: $changepw"
-    read -p "Please confirm this process? (yes/no): " confirm
-    if [[ "$confirm" == "yes" ]]; then
-      whoiam=$(whoami)
-      echo ""
-      /usr/bin/pwpolicy -a $whoiam -u $changepw -setpassword
-      echo "Task complete!"
-    else
-      echo "Password change cancelled."
-    fi
+  echo "Current OS Version: $(sw_vers)"
+  read -p "What you like to update to a specific version? " confirm_update
+  if [[ "$confirm_update" == "yes" ]]; then
+    echo ""
+    read -p "What is the update name you would like to install? " update_name
+    echo "Currently updating to $update_name"
+    sudo softwareupdate -i "$update_name" --restart
   else
-    echo "no user by that name"
+    echo "Update cancelled."
   fi
 }
 
@@ -263,12 +281,13 @@ show_menu() {
   echo "2. Rename the Mac"
   echo "3. Check users currently logged in to system"
   echo "4. Boot a specific user from the system"
-  echo "5. Prune user accounts that haven't logged in for 30+ days"
-  echo "6. Check for FileVault disk encryption"
-  echo "7. Disable FileVault notifications"
-  echo "8. Check for macOS updates"
-  echo "9. Update a user's password"
-  echo "10. Prune, Disable FileVault Notifications, and Update macOS"
+  echo "5. Update a user's password"
+  echo "6. Prune user accounts that haven't logged in for 30+ days"
+  echo "7. Check for FileVault disk encryption"
+  echo "8. Disable FileVault notifications"
+  echo "9. Check for macOS updates"
+  echo "10. Install a specific update version"
+  echo "11. Prune, Disable FileVault Notifications, and Update macOS"
   echo ""
   echo "0. Exit and delete this script"
   echo ""
@@ -296,21 +315,24 @@ while true; do
       boot_user
       ;;
     5)
-      prune_users
-      ;;
-    6)
-      check_filevault
-      ;;
-    7)
-      disable_filevault_prompts
-      ;;
-    8)
-      check_updates
-      ;;
-    9)
       change_user_password
       ;;
+    6)
+      prune_users
+      ;;
+    7)
+      check_filevault
+      ;;
+    8)
+      disable_filevault_prompts
+      ;;
+    9)
+      check_updates
+      ;;
     10)
+      specific_update
+      ;;
+    11)
       prune_users
       disable_filevault_prompts
       check_logged_in_users
