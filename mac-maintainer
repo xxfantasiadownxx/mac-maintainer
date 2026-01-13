@@ -257,16 +257,12 @@ specific_update() {
   echo "       Update to a specific build"
   echo "========================================"
   echo ""
-  echo "Current OS Version: $(sw_vers)"
-  read -p "What you like to update to a specific version? " confirm_update
-  if [[ "$confirm_update" == "yes" ]]; then
-    echo ""
-    read -p "What is the update name you would like to install? " update_name
-    echo "Currently updating to $update_name"
-    sudo softwareupdate -i "$update_name" --restart
-  else
-    echo "Update cancelled."
-  fi
+  echo "Current OS Version:"
+  sw_vers
+  echo ""
+  read -p "What is the update name you would like to install? " update_name
+  echo "Currently updating to $update_name"
+  sudo softwareupdate -i "$update_name" --restart
 }
 
 # Main menu
