@@ -265,21 +265,6 @@ specific_update() {
   sudo softwareupdate -i "$update_name" --restart
 }
 
-specific_update_time() {
-  echo "========================================"
-  echo "   Update and reboot at specific time"
-  echo "========================================"
-  echo ""
-  echo "Current OS Version:"
-  sw_vers
-  echo ""
-  read -p "What is the update name you would like to install? " update_name
-  echo "Currently updating to $update_name"
-  read -p "What time would you like the system to reboot after the update? " update_time
-  echo "Set to reboot at $update_time"
-  sudo softwareupdate -i "$update_name" --restart | at "$update_time"
-}
-
 # Main menu
 show_menu() {
   clear
@@ -298,8 +283,7 @@ show_menu() {
   echo "8. Disable FileVault notifications"
   echo "9. Check for macOS updates"
   echo "10. Install a specific update version"
-  echo "11. Update and reboot at a specific time"
-  echo "12. Prune, Disable FileVault Notifications, and Update macOS"
+  echo "11. Prune, Disable FileVault Notifications, and Update macOS"
   echo ""
   echo "0. Exit and delete this script"
   echo ""
@@ -346,9 +330,6 @@ while true; do
       specific_update
       ;;
     11)
-      specific_update_time
-      ;;
-    12)
       prune_users
       disable_filevault_prompts
       check_logged_in_users
