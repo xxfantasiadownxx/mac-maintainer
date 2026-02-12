@@ -272,20 +272,6 @@ specific_update() {
   fi
 }
 
-# Option 11 - Function to check for specifically defined macOS update name
-update_restart() {
-  echo "========================================"
-  echo "         Trigger update restart"
-  echo "========================================"
-  echo ""
-  read -p "This task will trigger the update and restart function. Would you like to continue? (yes/no): " confirm
-  if [[ "$confirm" == "yes" ]]; then
-    sudo softwareupdate --restart
-  else
-    echo "Update cancelled."
-  fi
-}
-
 # Main menu
 show_menu() {
   clear
@@ -304,8 +290,8 @@ show_menu() {
   echo "8. Disable FileVault notifications"
   echo "9. Check for macOS updates"
   echo "10. Install a specific update version"
-  echo "11. Trigger update restart function"
-  echo "12. Prune, Disable FileVault Notifications, and Update macOS"
+  echo ""
+  echo "99. Prune, Disable FileVault Notifications, and Update macOS"
   echo ""
   echo "0. Exit and delete this script"
   echo ""
@@ -352,10 +338,7 @@ while true; do
     10)
       specific_update
       ;;
-    11)
-      update_restart
-      ;;
-    11)
+    99)
       prune_users
       disable_filevault_prompts
       check_logged_in_users
