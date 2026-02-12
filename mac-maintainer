@@ -295,6 +295,7 @@ show_menu() {
   echo "0. Exit and delete this script"
   echo ""
   echo ""
+  echo "You are on machine $(hostname) at $(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')."
   echo "Current macOS version is $(sw_vers -productVersion)"
   echo "The system has been up for $(uptime | sed 's/.*up *//; s/,.*user.*//')."
   echo ""
