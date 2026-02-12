@@ -265,7 +265,7 @@ specific_update() {
   read -p "Would you like to reboot after the update? (yes/no): " confirm
   if [[ "$confirm" == "yes" ]]; then
     sudo softwareupdate -i "$update_name" --restart
-  if [[ "$confirm" == "no" ]]; then
+  elif [[ "$confirm" == "no" ]]; then
     sudo softwareupdate -i "$update_name"
   else
     echo "Update cancelled."
