@@ -298,7 +298,7 @@ show_menu() {
   echo "8. Disable FileVault notifications"
   echo "9. Check for macOS updates"
   echo "10. Install a specific update version"
-  echo "10. Update and reboot at a specific time"
+  echo "11. Update and reboot at a specific time"
   echo "12. Prune, Disable FileVault Notifications, and Update macOS"
   echo ""
   echo "0. Exit and delete this script"
