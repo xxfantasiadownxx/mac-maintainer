@@ -8,6 +8,13 @@ uninstall_papercut() {
   echo "           Uninstall Papercut"
   echo "========================================"
   echo ""
+  if [ -d "/Applications/PaperCut Print Deploy Client/" ]; then
+    echo "PaperCut Print Deploy Client found. Uninstalling..."
+    sudo "/Applications/PaperCut Print Deploy Client/Uninstall.command"
+    echo "Uninstall complete."
+  else
+    echo "PaperCut Print Deploy Client not installed. Skipping uninstall."
+  fi
   sudo "/Applications/PaperCut Print Deploy Client/Uninstall.command"
 }
 
@@ -25,8 +32,10 @@ rename_device() {
     SERIAL=$(ioreg -l | grep IOPlatformSerialNumber | awk '{print $4}' | sed 's/"//g')
     echo "Currently renaming the Mac to $prefix-$SERIAL"
     sudo scutil --set ComputerName "$prefix-$SERIAL" && sudo scutil --set LocalHostName "$prefix-$SERIAL" && sudo scutil --set HostName "$prefix-$SERIAL"
-  else
+  elif [[ "$confirm_rename" == "yes" ]]; then
     echo "Renaming cancelled."
+  else
+    echo "Invalid response. Renaming cancelled."
   fi
 }
 
@@ -78,8 +87,10 @@ change_user_password() {
       echo ""
       /usr/bin/pwpolicy -a $whoiam -u $changepw -setpassword
       echo "Task complete!"
-    else
+    elif [[ "$confirm" == "no" ]]; then
       echo "Password change cancelled."
+    else
+      echo "Invalid response. Password change cancelled."
     fi
   else
     echo "no user by that name"
@@ -161,8 +172,10 @@ prune_users() {
         sudo sysadminctl -deleteUser "$user"
       done < "$TEMP_FILE"
       echo "User deletion complete!"
+    elif [[ "$confirm" == "no" ]]; then
+      echo "You have opted to not delete the user accounts."
     else
-      echo "User deletion cancelled."
+      echo "Invalid response, operation cancelled."
     fi
   else
     echo "  (No users to delete)"
@@ -244,6 +257,13 @@ check_updates() {
       echo "Installing update: $UPDATE_LABEL"
       echo "The system will restart after installation..."
       sudo softwareupdate -i "$UPDATE_LABEL" --restart
+    elif [[ "$update_confirm" == "no" ]]; then
+      echo ""
+      echo "You are currently logged in as: $(whoami)"
+      echo ""
+      echo "Installing update: $UPDATE_LABEL"
+      echo "The system will NOT restart after installation... To restart and complete the update, you will need to run this update again with the restart function."
+      sudo softwareupdate -i "$UPDATE_LABEL"
     else
       echo "Update installation cancelled."
     fi
@@ -264,8 +284,10 @@ specific_update() {
   echo "Currently updating to $update_name"
   read -p "Would you like to reboot after the update? (yes/no): " confirm
   if [[ "$confirm" == "yes" ]]; then
+    echo "The system will restart after installation..."
     sudo softwareupdate -i "$update_name" --restart
   elif [[ "$confirm" == "no" ]]; then
+    echo "The system will NOT restart after installation... To restart and complete the update, you will need to run this update again with the restart function."
     sudo softwareupdate -i "$update_name"
   else
     echo "Update cancelled."
