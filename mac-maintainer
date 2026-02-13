@@ -15,7 +15,6 @@ uninstall_papercut() {
   else
     echo "PaperCut Print Deploy Client not installed. Skipping uninstall."
   fi
-  sudo "/Applications/PaperCut Print Deploy Client/Uninstall.command"
 }
 
 # Option 2 - Function to rename device based on serial.
