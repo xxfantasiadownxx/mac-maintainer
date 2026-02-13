@@ -333,8 +333,8 @@ show_menu() {
   echo "0. Exit and delete this script"
   echo ""
   echo ""
-  echo -e "You are on machine ${BLUE}$(hostname) at $(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')${NC}."
-  echo "The system has been up for $(uptime | sed 's/.*up *//; s/,.*user.*//')."
+  echo -e "You are on machine ${BLUE}$(hostname)${NC} at ${BLUE}$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')${NC}."
+  echo "The system has been up for ${BLUE}$(uptime | sed 's/.*up *//; s/,.*user.*//').${NC}"
   echo -e "Current macOS version is ${BLUE}$(sw_vers -productVersion)${NC}"
   echo ""
   read -p "What function would you like to perform? " choice
