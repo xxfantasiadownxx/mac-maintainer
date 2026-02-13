@@ -247,7 +247,7 @@ check_updates() {
   else
     echo "Found macOS update: $UPDATE_LABEL"
     echo ""
-    read -p "Do you want to install this update and restart? (yes/no): " update_confirm
+  read -p "Would you like to reboot after the update? (yes/no): " confirm
     
     if [[ "$update_confirm" == "yes" ]]; then
       echo ""
