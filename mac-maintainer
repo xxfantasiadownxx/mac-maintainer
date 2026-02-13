@@ -68,6 +68,7 @@ boot_user() {
   read -p "Who would you like to boot? " bootuser
   echo "Booting the user $bootuser"
   sudo pkill -9 -u $bootuser
+  sleep 1
   sudo pkill -9 -u $bootuser
 }
 
