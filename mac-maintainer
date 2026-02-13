@@ -254,14 +254,18 @@ check_updates() {
       echo "You are currently logged in as: $(whoami)"
       echo ""
       echo "Installing update: $UPDATE_LABEL"
+      echo ""
       echo "The system will restart after installation..."
+      echo ""
       sudo softwareupdate -i "$UPDATE_LABEL" --restart
     elif [[ "$update_confirm" == "no" ]]; then
       echo ""
       echo "You are currently logged in as: $(whoami)"
       echo ""
       echo "Installing update: $UPDATE_LABEL"
+      echo ""
       echo "The system will NOT restart after installation... To restart and complete the update, you will need to run this update again with the restart function."
+      echo ""
       sudo softwareupdate -i "$UPDATE_LABEL"
     else
       echo "Update installation cancelled."
@@ -280,13 +284,16 @@ specific_update() {
   sw_vers
   echo ""
   read -p "What is the update name you would like to install? " update_name
+  echo ""
   echo "Currently updating to $update_name"
   read -p "Would you like to reboot after the update? (yes/no): " confirm
   if [[ "$confirm" == "yes" ]]; then
     echo "The system will restart after installation..."
+    echo ""
     sudo softwareupdate -i "$update_name" --restart
   elif [[ "$confirm" == "no" ]]; then
     echo "The system will NOT restart after installation... To restart and complete the update, you will need to run this update again with the restart function."
+    echo ""
     sudo softwareupdate -i "$update_name"
   else
     echo "Update cancelled."
