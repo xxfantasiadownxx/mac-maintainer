@@ -88,7 +88,7 @@ change_user_password() {
   
   # Check if the user exists in the system
   if dscl . list /Users | grep -v "^_" | grep -q "^${changepw}$"; then
-    echo "You are intending to change the password for user: $changepw"
+    echo -e "You are intending to change the password for user: ${BLUE}$changepw${NC}"
     read -p "Please confirm this process? (yes/no): " confirm
     if [[ "$confirm" == "yes" ]]; then
       whoiam=$(whoami)
