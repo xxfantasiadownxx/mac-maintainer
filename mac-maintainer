@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# Color definitions
+RED='\033[0;31m' # error
+GREEN='\033[0;32m' # good
+YELLOW='\033[0;33m' # warning
+BLUE='\033[0;34m' # info
+NC='\033[0m' # No Color
+
 # Interactive macOS Maintenance Script
 
 # Option 1 - Function to uninstall Papercut.
@@ -11,9 +18,9 @@ uninstall_papercut() {
   if [ -d "/Applications/PaperCut Print Deploy Client/" ]; then
     echo "PaperCut Print Deploy Client found. Uninstalling..."
     sudo "/Applications/PaperCut Print Deploy Client/Uninstall.command"
-    echo "Uninstall complete."
+    echo -e "${GREEN}Uninstall complete.${NC}"
   else
-    echo "PaperCut Print Deploy Client not installed. Skipping uninstall."
+    echo -e "${YELLOW}PaperCut Print Deploy Client not installed.${NC}"
   fi
 }
 
@@ -23,7 +30,7 @@ rename_device() {
   echo "             Rename the Mac"
   echo "========================================"
   echo ""
-  echo "Current hostname: $(hostname)"
+  echo -e "Current hostname: ${BLUE}$(hostname)${NC}"
   read -p "Would you like to rename this machine? " confirm_rename
   if [[ "$confirm_rename" == "yes" ]]; then
     echo ""
@@ -32,9 +39,9 @@ rename_device() {
     echo "Currently renaming the Mac to $prefix-$SERIAL"
     sudo scutil --set ComputerName "$prefix-$SERIAL" && sudo scutil --set LocalHostName "$prefix-$SERIAL" && sudo scutil --set HostName "$prefix-$SERIAL"
   elif [[ "$confirm_rename" == "yes" ]]; then
-    echo "Renaming cancelled."
+    echo -e "${RED}Renaming cancelled.${NC}"
   else
-    echo "Invalid response. Renaming cancelled."
+    echo -e "${RED}Invalid response. Renaming cancelled.${NC}"
   fi
 }
 
@@ -85,14 +92,14 @@ change_user_password() {
       whoiam=$(whoami)
       echo ""
       /usr/bin/pwpolicy -a $whoiam -u $changepw -setpassword
-      echo "Task complete!"
+      echo -e "${GREEN}Task complete!${NC}"
     elif [[ "$confirm" == "no" ]]; then
       echo "Password change cancelled."
     else
-      echo "Invalid response. Password change cancelled."
+      echo -e "${RED}Invalid response. Password change cancelled.${NC}"
     fi
   else
-    echo "no user by that name"
+    echo -e "${YELLOW}no user by that name${NC}"
   fi
 }
 
@@ -170,14 +177,14 @@ prune_users() {
         echo "Deleting user: $user"
         sudo sysadminctl -deleteUser "$user"
       done < "$TEMP_FILE"
-      echo "User deletion complete!"
+      echo -e "${GREEN}User deletion complete!${NC}"
     elif [[ "$confirm" == "no" ]]; then
       echo "You have opted to not delete the user accounts."
     else
-      echo "Invalid response, operation cancelled."
+      echo -e "${RED}Invalid response, operation cancelled.${NC}"
     fi
   else
-    echo "  (No users to delete)"
+    echo -e "${YELLOW}(No users to delete)${NC}"
   fi
 
   # Clean up temp file
@@ -197,10 +204,10 @@ check_filevault() {
   
   if echo "$FV_STATUS" | grep -q "FileVault is On"; then
     echo ""
-    echo "✓ FileVault is enabled and protecting this disk."
+    echo -e "${RED}FileVault is enabled on this machine.${NC}"
   elif echo "$FV_STATUS" | grep -q "FileVault is Off"; then
     echo ""
-    echo "✗ FileVault is NOT enabled. Disk is not encrypted."
+    echo -e "${GREEN}FileVault is NOT enabled. Disk is not encrypted.${NC}"
   fi
   echo ""
 }
@@ -236,7 +243,7 @@ check_updates() {
   UPDATE_LABEL=$(echo "$UPDATE_OUTPUT" | grep "^\* Label:" | grep "macOS" | head -1 | sed 's/^\* Label: //')
   
   if [[ -z "$UPDATE_LABEL" ]]; then
-    echo "No macOS updates found."
+    echo -e "${YELLOW}No macOS updates found.${NC}"
     echo ""
     # Optionally show what other updates are available
     OTHER_UPDATES=$(echo "$UPDATE_OUTPUT" | grep "^\* Label:" | sed 's/^\* Label: //')
@@ -251,24 +258,25 @@ check_updates() {
     
     if [[ "$update_confirm" == "yes" ]]; then
       echo ""
-      echo "You are currently logged in as: $(whoami)"
+      echo -e "You are currently logged in as: ${BLUE}$(whoami)${NC}"
       echo ""
-      echo "Installing update: $UPDATE_LABEL"
+      echo -e "Installing update: ${BLUE}$UPDATE_LABEL${NC}"
       echo ""
-      echo "The system will restart after installation..."
+      echo -e "The system will ${YELLOW}restart${NC} after installation..."
       echo ""
       sudo softwareupdate -i "$UPDATE_LABEL" --restart
     elif [[ "$update_confirm" == "no" ]]; then
       echo ""
-      echo "You are currently logged in as: $(whoami)"
+      echo -e "You are currently logged in as: ${BLUE}$(whoami)${NC}"
       echo ""
-      echo "Installing update: $UPDATE_LABEL"
+      echo -e "Installing update: ${BLUE}$UPDATE_LABEL${NC}"
       echo ""
-      echo "The system will NOT restart after installation... To restart and complete the update, you will need to run this update again with the restart function."
+      echo -e "The system will ${YELLOW}NOT${NC} restart after installation..."
+      echo "To restart and complete the update, you will need to run this update again with the restart function."
       echo ""
       sudo softwareupdate -i "$UPDATE_LABEL"
     else
-      echo "Update installation cancelled."
+      echo -e "${RED}Update cancelled.${NC}"
     fi
   fi
   echo ""
@@ -288,15 +296,16 @@ specific_update() {
   echo "Currently updating to $update_name"
   read -p "Would you like to reboot after the update? (yes/no): " confirm
   if [[ "$confirm" == "yes" ]]; then
-    echo "The system will restart after installation..."
+    echo -e "The system will ${YELLOW}restart${NC} after installation..."
     echo ""
     sudo softwareupdate -i "$update_name" --restart
   elif [[ "$confirm" == "no" ]]; then
-    echo "The system will NOT restart after installation... To restart and complete the update, you will need to run this update again with the restart function."
+    echo -e "The system will ${YELLOW}NOT${NC} restart after installation..."
+    echo "To restart and complete the update, you will need to run this update again with the restart function."
     echo ""
     sudo softwareupdate -i "$update_name"
   else
-    echo "Update cancelled."
+    echo -e "Update cancelled.${NC}"
   fi
 }
 
@@ -324,9 +333,9 @@ show_menu() {
   echo "0. Exit and delete this script"
   echo ""
   echo ""
-  echo "You are on machine $(hostname) at $(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')."
+  echo -e "You are on machine ${BLUE}$(hostname) at $(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')${NC}."
   echo "The system has been up for $(uptime | sed 's/.*up *//; s/,.*user.*//')."
-  echo "Current macOS version is $(sw_vers -productVersion)"
+  echo -e "Current macOS version is ${BLUE}$(sw_vers -productVersion)${NC}"
   echo ""
   read -p "What function would you like to perform? " choice
 }
@@ -377,13 +386,13 @@ while true; do
       ;;
     0)
       echo "Deleting script and exiting..."
-      sleep 3
+      sleep 2
       rm -rf mac-maintainer
       clear
       exit 0
       ;;
     *)
-      echo "Invalid option. Please choose 1-10 or 0."
+      echo "Invalid option. Please choose 1-10, 99 or 0."
       ;;
   esac
   
