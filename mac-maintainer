@@ -81,7 +81,7 @@ change_user_password() {
   echo "These are all the user accounts on the system: "
   dscl . list /Users | grep -v "^_"
   echo ""
-  echo "You are currently logged in as: ${BLUE}$(whoami)${NC}"
+  echo -e "You are currently logged in as: ${BLUE}$(whoami)${NC}"
   echo ""
   read -p "Which user's password do you want to change? " changepw
   echo ""
