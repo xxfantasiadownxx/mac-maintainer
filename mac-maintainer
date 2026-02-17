@@ -107,9 +107,8 @@ delete_account() {
   echo "     Delete a specific user account"
   echo "========================================"
   echo ""
-  read "What user account would you like to delete? " deleteuser
   dscl . list /Users | grep -v "^_"
-  echo ""
+  read "What user account would you like to delete? " deleteuser
   
   # Check if the user exists in the system
   if dscl . list /Users | grep -v "^_" | grep -q "^${deleteuser}$"; then
