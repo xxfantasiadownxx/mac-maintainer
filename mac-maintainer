@@ -127,7 +127,31 @@ delete_account() {
   fi
 }
 
-# Option 6 - Prune Inactive User Accounts.
+# Option 6 - Create a user account with local admin rights
+create_account() {
+  echo "========================================"
+  echo "      Create a local admin account"
+  echo "========================================"
+  echo ""
+  echo "You are intending to create a user account with local admin rights."
+  echo ""
+  read -p "What is the username? " username
+  read -p "What is the user's first name? (case sensitive) " firstname
+  read -p "What is the user's last name? (case sensitive) " lastname
+  read -p "What password would you like to use? " password
+  sudo sysadminctl -addUser $username -fullName "$lastname, $firstname" -password "$password" && sudo dseditgroup -o edit -a $username -t user admin
+  echo ""
+  echo -e "User account for ${BLUE}$username${NC} successfully created."
+  echo ""
+  echo -e "${BLUE}Verifying the status of the account permissions.${NC}"
+  if dscl . read /Groups/admin GroupMembership 2>/dev/null | grep -qw "$username"; then
+    echo -e "${BLUE}$username${NC} is a ${GREEN}local administrator${NC}"
+  else
+    echo -e "${BLUE}$username${NC} is ${RED}not${NC} a local administrator"
+  fi
+}
+
+# Option 7 - Prune Inactive User Accounts.
 prune_users() {
   echo "========================================"
   echo "     Pruning Inactive User Accounts"
@@ -216,7 +240,7 @@ prune_users() {
   echo ""
 }
 
-# Option 7 - Function to check FileVault encryption status
+# Option 8 - Function to check FileVault encryption status
 check_filevault() {
   echo "========================================"
   echo "  Checking FileVault Encryption Status"
@@ -255,7 +279,7 @@ check_filevault() {
   fi
 }
 
-# Option 8 - Function to check for macOS updates
+# Option 9 - Function to check for macOS updates
 check_updates() {
   echo "========================================"
   echo "       Checking for macOS Updates"
@@ -308,7 +332,7 @@ check_updates() {
   echo ""
 }
 
-# Option 9 - Function to check for specifically defined macOS update name
+# Option 10 - Function to check for specifically defined macOS update name
 specific_update() {
   echo "========================================"
   echo "       Update to a specific build"
@@ -348,10 +372,11 @@ show_menu() {
   echo "3. Check and boot active users"
   echo "4. Update an account password"
   echo "5. Delete a user account"
-  echo "6. Prune inactive user accounts"
-  echo "7. Manage FileVault disk encryption"
-  echo "8. Check for macOS updates"
-  echo "9. Install a specific update version"
+  echo "6. Create a local admin account"
+  echo "7. Prune inactive user accounts"
+  echo "8. Manage FileVault disk encryption"
+  echo "9. Check for macOS updates"
+  echo "10. Install a specific update version"
   echo ""
   echo "0. Exit and delete this script"
   echo ""
@@ -384,15 +409,18 @@ while true; do
       delete_account
       ;;
     6)
-      prune_users
+      create_account
       ;;
     7)
-      check_filevault
+      prune_users
       ;;
     8)
-      check_updates
+      check_filevault
       ;;
     9)
+      check_updates
+      ;;
+    10)
       specific_update
       ;;
     0)
