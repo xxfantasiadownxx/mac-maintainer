@@ -243,6 +243,9 @@ check_filevault() {
       echo ""
     elif [[ "$confirm" == "no" ]]; then
       echo -e "You have chosen ${BLUE}NOT${NC} to disable FileVault and its notification prompts."
+    else
+      echo -e "${RED}Invalid response. No changes made.${NC}"
+    fi
   elif echo "$FV_STATUS" | grep -q "FileVault is Off"; then
     echo ""
     echo -e "${GREEN}FileVault is NOT enabled. Disk is not encrypted.${NC}"
