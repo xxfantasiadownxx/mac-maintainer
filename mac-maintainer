@@ -143,7 +143,11 @@ create_account() {
   echo ""
   echo -e "User account for ${BLUE}$username${NC} successfully created."
   echo ""
+  echo "User identity is listed as:"
+  id -F $username
+  echo ""
   echo -e "${BLUE}Verifying the status of the account permissions.${NC}"
+  id -F $username
   if dscl . read /Groups/admin GroupMembership 2>/dev/null | grep -qw "$username"; then
     echo -e "${BLUE}$username${NC} is a ${GREEN}local administrator${NC}"
   else
