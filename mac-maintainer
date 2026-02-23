@@ -431,7 +431,7 @@ while true; do
       echo "Deleting script and exiting..."
       sleep 2
       rm -rf mac-maintainer
-      echo "" > ~/.zsh_history
+      fc -p
       clear
       exit 0
       ;;
