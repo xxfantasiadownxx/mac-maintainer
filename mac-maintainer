@@ -313,19 +313,15 @@ check_updates() {
     if [[ "$update_confirm" == "yes" ]]; then
       echo ""
       echo -e "You are currently logged in as: ${BLUE}$(whoami)${NC}"
-      echo ""
       echo -e "Installing update: ${BLUE}$UPDATE_LABEL${NC}"
-      echo ""
-      echo -e "The system will ${YELLOW}restart${NC} after installation..."
+      echo -e "The system will ${YELLOW}RESTART${NC} after installation..."
       echo ""
       sudo softwareupdate -i "$UPDATE_LABEL" --restart
     elif [[ "$update_confirm" == "no" ]]; then
       echo ""
       echo -e "You are currently logged in as: ${BLUE}$(whoami)${NC}"
-      echo ""
       echo -e "Installing update: ${BLUE}$UPDATE_LABEL${NC}"
-      echo ""
-      echo -e "The system will ${YELLOW}NOT${NC} restart after installation..."
+      echo -e "The system will ${GREEN}NOT RESTART${NC} after installation..."
       echo "To restart and complete the update, you will need to run this update again with the restart function."
       echo ""
       sudo softwareupdate -i "$UPDATE_LABEL"
