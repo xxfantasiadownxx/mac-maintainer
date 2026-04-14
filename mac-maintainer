@@ -1,76 +1,440 @@
-#!/bin/bash
+# Color definitions
+RED='\033[0;31m' # bad
+GREEN='\033[0;32m' # good
+YELLOW='\033[0;33m' # warning
+BLUE='\033[0;34m' # info
+NC='\033[0m' # No Color
 
-echo ""
-echo "========================================"
-echo "          Mac Recovery Toolkit"
-echo "========================================"
-echo ""
+# Interactive macOS Maintenance Script
 
-# --- Prompt for user input ---
-read -p "Enter FileVault Recovery Key: " RECOVERY_KEY
-read -p "Enter new admin username: " NEW_USER
-read -p "Enter real name for admin: " REAL_NAME
-read -p "Enter new password for $NEW_USER: " NEW_PASS
-read -p "Enter new UID for $NEW_USER (e.g., 502): " UNIQUE_ID
-echo "Group ID will be set to 80 (admin group)."
-sleep 2
+# Option 1 - Function to uninstall Papercut.
+uninstall_papercut() {
+  echo "========================================"
+  echo "           Uninstall Papercut"
+  echo "========================================"
+  echo ""
+  if [ -d "/Applications/PaperCut Print Deploy Client/" ]; then
+    echo "PaperCut Print Deploy Client found. Uninstalling..."
+    sudo "/Applications/PaperCut Print Deploy Client/Uninstall.command"
+    echo -e "${GREEN}Uninstall complete.${NC}"
+  else
+    echo -e "${YELLOW}PaperCut Print Deploy Client not installed.${NC}"
+  fi
+}
 
-# --- Assign Group ID ---
-GROUP_ID=80
+# Option 2 - Function to rename device based on serial.
+rename_device() {
+  echo "========================================"
+  echo "             Rename the Mac"
+  echo "========================================"
+  echo ""
+  echo -e "Current hostname: ${BLUE}$(hostname)${NC}"
+  read -p "Would you like to rename this machine? " confirm_rename
+  if [[ "$confirm_rename" == "yes" ]]; then
+    echo ""
+    read -p "What prefix would you like to have before the serial number? " prefix
+    SERIAL=$(ioreg -l | grep IOPlatformSerialNumber | awk '{print $4}' | sed 's/"//g')
+    echo "Currently renaming the Mac to $prefix-$SERIAL"
+    sudo scutil --set ComputerName "$prefix-$SERIAL" && sudo scutil --set LocalHostName "$prefix-$SERIAL" && sudo scutil --set HostName "$prefix-$SERIAL"
+  elif [[ "$confirm_rename" == "yes" ]]; then
+    echo -e "${RED}Renaming cancelled.${NC}"
+  else
+    echo -e "${RED}Invalid response. Renaming cancelled.${NC}"
+  fi
+}
 
-# --- Show disk layout ---
-diskutil list
-read -p "Where is Macintosh HD - Data mapped to (include /dev/ in path): " DATA_VOL
+# Option 3 - Function to check boot currently logged in users.
+user_inquiry() {
+  echo "========================================"
+  echo "          Current user inquiry"
+  echo "========================================"
+  echo ""
+  echo "The users currently logged into this system are: "
+  who
+  echo ""
+  read -p "Would you like boot anyone from the system? (yes/no): " confirm
+  if [[ "$confirm" == "yes" ]]; then
+    read -p "Who would you like to boot? " bootuser
+    echo -e "Booting the user ${BLUE}$bootuser${NC}"
+    sudo pkill -9 -u $bootuser
+    sleep 1
+    sudo pkill -9 -u $bootuser
+  elif [[ "$confirm" == "no" ]]; then
+    echo -e "${YELLOW}User inquiry cancelled.${NC}"
+  else
+    echo -e "${YELLOW}User inquiry cancelled.${NC}"
+  fi
+}
 
-# --- Unlock FileVault Data volume ---
-echo "[*] Unlocking FileVault Data volume..."
-sleep 1
-diskutil apfs unlockVolume "$DATA_VOL" -passphrase "$RECOVERY_KEY"
+# Option 4 - Function to change a users password
+change_password() {
+  echo "========================================"
+  echo "        Change a user's password"
+  echo "========================================"
+  echo ""
+  echo "These are all the user accounts on the system: "
+  dscl . list /Users | grep -v "^_"
+  echo ""
+  echo -e "You are currently logged in as: ${BLUE}$(whoami)${NC}"
+  echo ""
+  read -p "Which user's password do you want to change? " changepw
+  echo ""
+  
+  # Check if the user exists in the system
+  if dscl . list /Users | grep -v "^_" | grep -q "^${changepw}$"; then
+    echo -e "You are intending to change the password for user: ${BLUE}$changepw${NC}"
+    read -p "Please confirm this process? (yes/no): " confirm
+    if [[ "$confirm" == "yes" ]]; then
+      whoiam=$(whoami)
+      echo ""
+      /usr/bin/pwpolicy -a $whoiam -u $changepw -setpassword
+      echo -e "${GREEN}Task complete!${NC}"
+    elif [[ "$confirm" == "no" ]]; then
+      echo "Password change cancelled."
+    else
+      echo -e "${RED}Invalid response. Password change cancelled.${NC}"
+    fi
+  else
+    echo -e "${YELLOW}no user by that name${NC}"
+  fi
+}
 
-# --- Mount Data volume ---
-echo "[*] Mounting Data volume..."
-sleep 1
-diskutil mount "$DATA_VOL"
+# Option 5 - Delete a user's account
+delete_account() {
+  echo "========================================"
+  echo "     Delete a specific user account"
+  echo "========================================"
+  echo ""
+  dscl . list /Users | grep -v "^_"
+  read -p "What user account would you like to delete? " deleteuser
+  
+  # Check if the user exists in the system
+  if dscl . list /Users | grep -v "^_" | grep -q "^${deleteuser}$"; then
+    echo -e "You are intending to delete the account for ${BLUE}$deleteuser${NC}"
+    read -p "Please confirm this process? (yes/no): " confirm
+    if [[ "$confirm" == "yes" ]]; then
+      sudo sysadminctl -deleteUser $deleteuser
+      echo -e "${GREEN}Task complete!${NC}"
+    elif [[ "$confirm" == "no" ]]; then
+      echo "Account deletion cancelled."
+    else
+      echo -e "${RED}Invalid response. Account deletion cancelled.${NC}"
+    fi
+  else
+    echo -e "${YELLOW}no user by that name${NC}"
+  fi
+}
 
-# --- Define mount path ---
-DATA_MOUNT="/Volumes/Macintosh HD - Data"
+# Option 6 - Create a user account with local admin rights
+create_account() {
+  echo "========================================"
+  echo "      Create a local admin account"
+  echo "========================================"
+  echo ""
+  echo "You are intending to create a user account with local admin rights."
+  echo ""
+  read -p "What is the username? " username
+  read -p "What is the user's first name? (case sensitive) " firstname
+  read -p "What is the user's last name? (case sensitive) " lastname
+  read -p "What password would you like to use? " password
+  sudo sysadminctl -addUser $username -fullName "$lastname, $firstname" -password "$password" && sudo dseditgroup -o edit -a $username -t user admin
+  echo ""
+  echo -e "User account for ${BLUE}$username${NC} successfully created."
+  echo ""
+  echo "User identity is listed as:"
+  id -F $username
+  echo ""
+  echo -e "${BLUE}Verifying the status of the account permissions.${NC}"
+  id -F $username
+  if dscl . read /Groups/admin GroupMembership 2>/dev/null | grep -qw "$username"; then
+    echo -e "${BLUE}$username${NC} is a ${GREEN}local administrator${NC}"
+  else
+    echo -e "${BLUE}$username${NC} is ${RED}not${NC} a local administrator"
+  fi
+}
 
-# --- Create user record directly on mounted volume (FIX for dscl auth issue) ---
-echo "[*] Creating new admin user on target volume..."
-sleep 1
+# Option 7 - Prune Inactive User Accounts.
+prune_users() {
+  echo "========================================"
+  echo "     Pruning Inactive User Accounts"
+  echo "========================================"
+  echo ""
 
-dscl -f "$DATA_MOUNT/private/var/db/dslocal/nodes/Default" localhost -create "/Local/Default/Users/$NEW_USER"
-sleep 0.5
-dscl -f "$DATA_MOUNT/private/var/db/dslocal/nodes/Default" localhost -create "/Local/Default/Users/$NEW_USER" UserShell /bin/zsh
-sleep 0.5
-dscl -f "$DATA_MOUNT/private/var/db/dslocal/nodes/Default" localhost -create "/Local/Default/Users/$NEW_USER" RealName "$REAL_NAME"
-sleep 0.5
-dscl -f "$DATA_MOUNT/private/var/db/dslocal/nodes/Default" localhost -create "/Local/Default/Users/$NEW_USER" UniqueID "$UNIQUE_ID"
-sleep 0.5
-dscl -f "$DATA_MOUNT/private/var/db/dslocal/nodes/Default" localhost -create "/Local/Default/Users/$NEW_USER" PrimaryGroupID "$GROUP_ID"
-sleep 0.5
-dscl -f "$DATA_MOUNT/private/var/db/dslocal/nodes/Default" localhost -create "/Local/Default/Users/$NEW_USER" NFSHomeDirectory "/Users/$NEW_USER"
-sleep 0.5
+  # List of users to exclude from deletion
+  EXCLUDE_USERS=("Atlas" "berklgre" "daemon" "nobody" "root" "Support")
 
-# --- Set password properly (FIXED) ---
-dscl -f "$DATA_MOUNT/private/var/db/dslocal/nodes/Default" localhost -passwd "/Local/Default/Users/$NEW_USER" "$NEW_PASS"
-sleep 0.5
+  # Date 30 days ago in epoch time
+  THIRTY_DAYS_AGO=$(date -v-30d +%s)
 
-# --- Add to admin group ---
-dscl -f "$DATA_MOUNT/private/var/db/dslocal/nodes/Default" localhost -append "/Local/Default/Groups/admin" GroupMembership "$NEW_USER"
+  # Temporary file to store users to delete
+  TEMP_FILE=$(mktemp)
 
-# --- Create home directory on Data volume ---
-echo "[*] Creating home directory..."
-sleep 1
-mkdir -p "$DATA_MOUNT/Users/$NEW_USER"
-chown -R "$UNIQUE_ID:$GROUP_ID" "$DATA_MOUNT/Users/$NEW_USER"
-chmod 755 "$DATA_MOUNT/Users/$NEW_USER"
-sleep 1
+  # Get all non-system users
+  while read user; do
+    # Check if user is in exclusion list
+    if [[ " ${EXCLUDE_USERS[@]} " =~ " ${user} " ]]; then
+      continue
+    fi
+    
+    # Get last login info
+    last_login=$(last -1 "$user" | head -1 | grep -v 'wtmp begins')
+    
+    # Check if user never logged in
+    if [[ -z "$last_login" ]]; then
+      echo "Will delete: $user - Never logged in"
+      echo "$user" >> "$TEMP_FILE"
+      continue
+    fi
+    
+    # Extract the login date from last command output
+    login_date=$(echo "$last_login" | awk '{print $4, $5, $6}')
+    
+    # Check if login shows "still logged in" - these are recent
+    if echo "$last_login" | grep -q "still logged in"; then
+      continue
+    fi
+    
+    # Convert login date to epoch time
+    login_epoch=$(date -j -f "%b %d %H:%M" "$login_date" +%s 2>/dev/null)
+    
+    # If date conversion failed, skip this user
+    if [[ -z "$login_epoch" ]]; then
+      continue
+    fi
+    
+    # Check if last login was more than 30 days ago
+    if [[ $login_epoch -lt $THIRTY_DAYS_AGO ]]; then
+      echo "Will delete: $user - Last login: $login_date"
+      echo "$user" >> "$TEMP_FILE"
+    fi
+  done < <(dscl . list /Users | grep -v '^_')
 
-echo "[*] Admin account '$NEW_USER' created successfully!"
-sleep 2
+  # Display summary
+  echo ""
+  echo "Users to be deleted:"
+  echo "--------------------"
 
-read -p "Reboot now? (y/n): " DO_REBOOT
-if [[ "$DO_REBOOT" =~ ^[Yy]$ ]]; then
-  reboot
-fi
+  if [[ -s "$TEMP_FILE" ]]; then
+    cat "$TEMP_FILE" | while read user; do
+      echo "  - $user"
+    done
+    
+    echo ""
+    read -p "Do you want to proceed with deleting these users? (yes/no): " confirm
+    
+    if [[ "$confirm" == "yes" ]]; then
+      while read user; do
+        echo "Deleting user: $user"
+        sudo sysadminctl -deleteUser "$user"
+      done < "$TEMP_FILE"
+      echo -e "${GREEN}User deletion complete!${NC}"
+    elif [[ "$confirm" == "no" ]]; then
+      echo "You have opted to not delete the user accounts."
+    else
+      echo -e "${RED}Invalid response, operation cancelled.${NC}"
+    fi
+  else
+    echo -e "${YELLOW}(No users to delete)${NC}"
+  fi
+
+  # Clean up temp file
+  rm "$TEMP_FILE"
+  echo ""
+}
+
+# Option 8 - Function to check FileVault encryption status
+check_filevault() {
+  echo "========================================"
+  echo "  Checking FileVault Encryption Status"
+  echo "========================================"
+  echo ""
+  
+  FV_STATUS=$(fdesetup status)
+  echo "$FV_STATUS"
+  
+  if echo "$FV_STATUS" | grep -q "FileVault is On"; then
+    echo ""
+    echo -e "${RED}FileVault is enabled on this machine.${NC}"
+    echo ""
+    read -p "Do you want disable Filevault and its notifications? (yes/no): " confirm
+    if [[ "$confirm" == "yes" ]]; then
+      echo "Disabling FileVault..."
+      sudo fdesetup disable
+      echo "Disabling FileVault setup notification prompts..."
+      sudo defaults write /Library/Preferences/com.apple.MCXNotifications.plist FileVaultSetup -bool FALSE
+      killall NotificationCenter 2>/dev/null || true
+      echo ""
+      echo -e "${GREEN}FileVault and its notification prompts have been disabled.${NC}"
+      echo ""
+    elif [[ "$confirm" == "no" ]]; then
+      echo -e "You have chosen ${BLUE}NOT${NC} to disable FileVault and its notification prompts."
+    else
+      echo -e "${RED}Invalid response. No changes made.${NC}"
+    fi
+  elif echo "$FV_STATUS" | grep -q "FileVault is Off"; then
+    echo ""
+    echo -e "${GREEN}FileVault is NOT enabled. Disk is not encrypted.${NC}"
+    sudo defaults write /Library/Preferences/com.apple.MCXNotifications.plist FileVaultSetup -bool FALSE
+    killall NotificationCenter 2>/dev/null || true
+    echo -e "${GREEN}FileVault notification prompts have been disabled.${NC}"
+    echo ""
+  fi
+}
+
+# Option 9 - Function to check for macOS updates
+check_updates() {
+  echo "========================================"
+  echo "       Checking for macOS Updates"
+  echo "========================================"
+  echo ""
+  # Check for available updates
+  echo "Searching for available software updates..."
+  UPDATE_OUTPUT=$(softwareupdate -l 2>&1)
+  
+  # Extract only macOS updates (lines starting with "* Label:" and containing "macOS")
+  UPDATE_LABEL=$(echo "$UPDATE_OUTPUT" | grep "^\* Label:" | grep "macOS" | head -1 | sed 's/^\* Label: //')
+  
+  if [[ -z "$UPDATE_LABEL" ]]; then
+    echo -e "${YELLOW}No macOS updates found.${NC}"
+    echo ""
+    # Optionally show what other updates are available
+    OTHER_UPDATES=$(echo "$UPDATE_OUTPUT" | grep "^\* Label:" | sed 's/^\* Label: //')
+    if [[ -n "$OTHER_UPDATES" ]]; then
+      echo "Other available updates (non-macOS):"
+      echo "$OTHER_UPDATES"
+    fi
+  else
+    echo "Found macOS update: $UPDATE_LABEL"
+    echo ""
+  read -p "Would you like to reboot after the update? (yes/no): " update_confirm
+    
+    if [[ "$update_confirm" == "yes" ]]; then
+      echo ""
+      echo -e "You are currently logged in as: ${BLUE}$(whoami)${NC}"
+      echo -e "Installing update: ${BLUE}$UPDATE_LABEL${NC}"
+      echo -e "The system will ${YELLOW}RESTART${NC} after installation..."
+      echo ""
+      sudo softwareupdate -i "$UPDATE_LABEL" --restart
+    elif [[ "$update_confirm" == "no" ]]; then
+      echo ""
+      echo -e "You are currently logged in as: ${BLUE}$(whoami)${NC}"
+      echo -e "Installing update: ${BLUE}$UPDATE_LABEL${NC}"
+      echo -e "The system will ${GREEN}NOT RESTART${NC} after installation..."
+      echo "To restart and complete the update, you will need to run this update again with the restart function."
+      echo ""
+      sudo softwareupdate -i "$UPDATE_LABEL"
+    else
+      echo -e "${RED}Update cancelled.${NC}"
+    fi
+  fi
+  echo ""
+}
+
+# Option 10 - Function to check for specifically defined macOS update name
+specific_update() {
+  echo "========================================"
+  echo "       Update to a specific build"
+  echo "========================================"
+  echo ""
+  echo "Current OS Version:"
+  sw_vers
+  echo ""
+  read -p "What is the update name you would like to install? " update_name
+  echo ""
+  echo "Currently updating to $update_name"
+  read -p "Would you like to reboot after the update? (yes/no): " confirm
+  if [[ "$confirm" == "yes" ]]; then
+    echo -e "The system will ${YELLOW}restart${NC} after installation..."
+    echo ""
+    sudo softwareupdate -i "$update_name" --restart
+  elif [[ "$confirm" == "no" ]]; then
+    echo -e "The system will ${YELLOW}NOT${NC} restart after installation..."
+    echo "To restart and complete the update, you will need to run this update again with the restart function."
+    echo ""
+    sudo softwareupdate -i "$update_name"
+  else
+    echo -e "Update cancelled.${NC}"
+  fi
+}
+
+# Main menu
+show_menu() {
+  clear
+  echo ""
+  echo "========================================"
+  echo "         Mac Maintainer Toolbox"
+  echo "========================================"
+  echo ""
+  echo "1. Uninstall Papercut"
+  echo "2. Rename the Mac"
+  echo "3. Check and boot active users"
+  echo "4. Update an account password"
+  echo "5. Delete a user account"
+  echo "6. Create a local admin account"
+  echo "7. Prune inactive user accounts"
+  echo "8. Manage FileVault disk encryption"
+  echo "9. Check for macOS updates"
+  echo "10. Install a specific update version"
+  echo ""
+  echo "0. Exit and delete this script"
+  echo ""
+  echo ""
+  echo -e "You are on machine ${BLUE}$(hostname)${NC} at ${BLUE}$(ifconfig | grep "inet " | grep -v 127.0.0.1 | awk '{print $2}')${NC}."
+  echo -e "The system has been up for ${BLUE}$(uptime | sed 's/.*up *//; s/,.*user.*//')${NC}."
+  FREE=$((100 - $(df -h / | awk 'NR==2 {print $5}' | tr -d '%')));
+  echo -e "Current macOS version is ${BLUE}$(sw_vers -productVersion)${NC}"
+  echo -e "Free disk space: ${BLUE}$((100 - $(df -h / | awk 'NR==2 {print $5}' | tr -d '%')))%${NC}"
+  echo ""
+  read -p "What function would you like to perform? " choice
+}
+
+# Main script execution
+while true; do
+  show_menu
+  
+  case $choice in
+    1)
+      uninstall_papercut
+      ;;
+    2)
+      rename_device
+      ;;
+    3)
+      user_inquiry
+      ;;
+    4)
+      change_password
+      ;;
+    5)
+      delete_account
+      ;;
+    6)
+      create_account
+      ;;
+    7)
+      prune_users
+      ;;
+    8)
+      check_filevault
+      ;;
+    9)
+      check_updates
+      ;;
+    10)
+      specific_update
+      ;;
+    0)
+      echo "Deleting script and exiting..."
+      sleep 2
+      rm -rf mac-maintainer
+      fc -p
+      clear
+      exit 0
+      ;;
+    *)
+      echo "Invalid option. Please choose 1-9 or 0."
+      ;;
+  esac
+  
+  read -p "Press Enter to return to menu..."
+done
