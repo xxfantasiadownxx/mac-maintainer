@@ -1,0 +1,45 @@
+#!/bin/bash
+# === Interactive Recovery Mode Admin Creation Script ===
+# Prompts for recovery key, username, and password
+
+# --- Prompt for user input ---
+read -p "Enter FileVault Recovery Key: " RECOVERY_KEY
+
+read -p "Enter new admin username: " NEW_USER
+read -p "Enter real name for admin: " REAL_NAME
+read -p "Enter new password for $NEW_USER: " -s NEW_PASS
+echo
+diskutil list
+read -p "Where is Macintosh HD mapped to: " SYSTEM_VOL
+read -p "Where is Macintosh HD - Data mapped to: " DATA_VOL
+# --- Assign UID and Group ID ---
+# UID 502+ usually works; adjust if needed
+UNIQUE_ID=502
+GROUP_ID=80  # admin group
+
+# --- Unlock FileVault system volume ---
+echo "[*] Unlocking FileVault system volume..."
+diskutil apfs unlockVolume "$SYSTEM_VOL" -passphrase "$RECOVERY_KEY"
+
+# --- Mount system volume read/write ---
+echo "[*] Mounting system volume read/write..."
+mount -uw "/Volumes/Macintosh HD"
+
+# --- Create new admin user ---
+echo "[*] Creating new admin user in system directory..."
+dscl . -create /Users/"$NEW_USER"
+dscl . -create /Users/"$NEW_USER" UserShell /bin/zsh
+dscl . -create /Users/"$NEW_USER" RealName "$REAL_NAME"
+dscl . -create /Users/"$NEW_USER" UniqueID "$UNIQUE_ID"
+dscl . -create /Users/"$NEW_USER" PrimaryGroupID "$GROUP_ID"
+dscl . -create /Users/"$NEW_USER" NFSHomeDirectory /Users/"$NEW_USER"
+dscl . -passwd /Users/"$NEW_USER" "$NEW_PASS"
+
+# --- Create home directory on data volume ---
+echo "[*] Creating home directory on data volume..."
+mkdir -p "/Volumes/Macintosh HD - Data/Users/$NEW_USER"
+chown -R "$UNIQUE_ID:$GROUP_ID" "/Volumes/Macintosh HD - Data/Users/$NEW_USER"
+
+echo "[*] Admin account created successfully!"
+echo "[*] Rebooting..."
+reboot
