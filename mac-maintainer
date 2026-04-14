@@ -1,3 +1,7 @@
+# Updated 4/14/2026
+
+#!/bin/bash
+
 # Color definitions
 RED='\033[0;31m' # bad
 GREEN='\033[0;32m' # good
