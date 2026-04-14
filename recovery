@@ -30,13 +30,21 @@ DSLOCAL="/Volumes/Macintosh HD - Data/private/var/db/dslocal/nodes/Default"
 
 # --- Create new admin user in dslocal ---
 echo "[*] Creating new admin user..."
+sleep 1
 dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER"
+sleep .5
 dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER" UserShell /bin/zsh
+sleep .5
 dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER" RealName "$REAL_NAME"
+sleep .5
 dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER" UniqueID "$UNIQUE_ID"
+sleep .5
 dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER" PrimaryGroupID "$GROUP_ID"
+sleep .5
 dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER" NFSHomeDirectory /Users/"$NEW_USER"
+sleep .5
 dscl -f "$DSLOCAL" localhost -passwd /Users/"$NEW_USER" "$NEW_PASS"
+sleep 1
 
 # --- Add to admin group ---
 echo "[*] Adding user to admin group..."
