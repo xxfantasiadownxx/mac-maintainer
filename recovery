@@ -1,5 +1,12 @@
 #!/bin/bash
 
+clear
+echo ""
+echo "========================================"
+echo "          Mac Recovery Toolkit"
+echo "========================================"
+echo ""
+
 # --- Prompt for user input ---
 read -p "Enter FileVault Recovery Key: " RECOVERY_KEY
 read -p "Enter new admin username: " NEW_USER
@@ -18,47 +25,55 @@ read -p "Where is Macintosh HD - Data mapped to (include /dev/ in path): " DATA_
 
 # --- Unlock FileVault Data volume ---
 echo "[*] Unlocking FileVault Data volume..."
-diskutil apfs unlockVolume "$DATA_VOL" -passphrase "$RECOVERY_KEY"
 sleep 1
+diskutil apfs unlockVolume "$DATA_VOL" -passphrase "$RECOVERY_KEY"
 
 # --- Mount Data volume ---
 echo "[*] Mounting Data volume..."
-diskutil mount "$DATA_VOL"
 sleep 1
+diskutil mount "$DATA_VOL"
 
-DSLOCAL="/Volumes/Macintosh HD - Data/private/var/db/dslocal/nodes/Default"
-
-# --- Create new admin user in dslocal ---
+# --- Create user in live recovery DS ---
 echo "[*] Creating new admin user..."
 sleep 1
-dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER"
+dscl . -create /Users/"$NEW_USER"
 sleep .5
-dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER" UserShell /bin/zsh
+dscl . -create /Users/"$NEW_USER" UserShell /bin/zsh
 sleep .5
-dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER" RealName "$REAL_NAME"
+dscl . -create /Users/"$NEW_USER" RealName "$REAL_NAME"
 sleep .5
-dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER" UniqueID "$UNIQUE_ID"
+dscl . -create /Users/"$NEW_USER" UniqueID "$UNIQUE_ID"
 sleep .5
-dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER" PrimaryGroupID "$GROUP_ID"
+dscl . -create /Users/"$NEW_USER" PrimaryGroupID "$GROUP_ID"
 sleep .5
-dscl -f "$DSLOCAL" localhost -create /Users/"$NEW_USER" NFSHomeDirectory /Users/"$NEW_USER"
+dscl . -create /Users/"$NEW_USER" NFSHomeDirectory /Users/"$NEW_USER"
 sleep .5
-dscl -f "$DSLOCAL" localhost -passwd /Users/"$NEW_USER" "$NEW_PASS"
-sleep 1
+dscl . -passwd /Users/"$NEW_USER" "$NEW_PASS"
+sleep .5
+dscl . -append /Groups/admin GroupMembership "$NEW_USER"
 
-# --- Add to admin group ---
-echo "[*] Adding user to admin group..."
-dscl -f "$DSLOCAL" localhost -append /Groups/admin GroupMembership "$NEW_USER"
+# --- Copy resulting plist to Data volume ---
+echo "[*] Writing user record to Data volume..."
 sleep 1
+cp /var/db/dslocal/nodes/Default/users/"$NEW_USER".plist \
+   "/Volumes/Macintosh HD - Data/private/var/db/dslocal/nodes/Default/users/"
+
+# --- Also update admin group plist ---
+echo "[*] Writing admin group information to Data volume..."
+sleep 1
+cp /var/db/dslocal/nodes/Default/groups/admin.plist \
+   "/Volumes/Macintosh HD - Data/private/var/db/dslocal/nodes/Default/groups/"
 
 # --- Create home directory on Data volume ---
 echo "[*] Creating home directory..."
+sleep 1
 mkdir -p "/Volumes/Macintosh HD - Data/Users/$NEW_USER"
 chown -R "$UNIQUE_ID:$GROUP_ID" "/Volumes/Macintosh HD - Data/Users/$NEW_USER"
 chmod 755 "/Volumes/Macintosh HD - Data/Users/$NEW_USER"
 sleep 1
 
 echo "[*] Admin account '$NEW_USER' created successfully!"
+sleep 3
 read -p "Reboot now? (y/n): " DO_REBOOT
 if [ "$DO_REBOOT" = "y" ]; then
   reboot
