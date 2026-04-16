@@ -282,7 +282,7 @@ check_filevault() {
     echo -e "${GREEN}FileVault is NOT enabled. Disk is not encrypted.${NC}"
     echo ""
     echo "Disabling FileVault setup notification prompts..."
-    echo "${YELLOW}[note: updates can revert this change]${NC}"
+    echo -e "${YELLOW}[note: updates can revert this change]${NC}"
     sudo defaults write /Library/Preferences/com.apple.MCXNotifications.plist FileVaultSetup -bool FALSE
     killall NotificationCenter 2>/dev/null || true
     echo -e "${GREEN}FileVault notification prompts have been disabled.${NC}"
