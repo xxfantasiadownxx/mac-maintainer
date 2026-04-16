@@ -255,20 +255,22 @@ check_filevault() {
   
   FV_STATUS=$(fdesetup status)
   echo "$FV_STATUS"
-  
+
+  echo -e "${BLUE}Checking the status of FileVault on this machine...${NC}"
   if echo "$FV_STATUS" | grep -q "FileVault is On"; then
     echo ""
     echo -e "${RED}FileVault is enabled on this machine.${NC}"
     echo ""
-    read -p "Do you want disable Filevault and its notifications? (yes/no): " confirm
+    read -p "Do you want disable FileVault encryption and future notifications? (yes/no): " confirm
     if [[ "$confirm" == "yes" ]]; then
-      echo "Disabling FileVault..."
+      echo "Disabling FileVault disk encryption..."
       sudo fdesetup disable
       echo "Disabling FileVault setup notification prompts..."
+      echo "[note: updates can revert this change]"
       sudo defaults write /Library/Preferences/com.apple.MCXNotifications.plist FileVaultSetup -bool FALSE
       killall NotificationCenter 2>/dev/null || true
       echo ""
-      echo -e "${GREEN}FileVault and its notification prompts have been disabled.${NC}"
+      echo -e "${GREEN}FileVault encryption and its notification prompts have been disabled.${NC}"
       echo ""
     elif [[ "$confirm" == "no" ]]; then
       echo -e "You have chosen ${BLUE}NOT${NC} to disable FileVault and its notification prompts."
@@ -278,6 +280,9 @@ check_filevault() {
   elif echo "$FV_STATUS" | grep -q "FileVault is Off"; then
     echo ""
     echo -e "${GREEN}FileVault is NOT enabled. Disk is not encrypted.${NC}"
+    echo ""
+    echo "Disabling FileVault setup notification prompts..."
+    echo "[note: updates can revert this change]"
     sudo defaults write /Library/Preferences/com.apple.MCXNotifications.plist FileVaultSetup -bool FALSE
     killall NotificationCenter 2>/dev/null || true
     echo -e "${GREEN}FileVault notification prompts have been disabled.${NC}"
@@ -310,6 +315,7 @@ check_updates() {
   else
     echo "Found macOS update: $UPDATE_LABEL"
     echo ""
+
   read -p "Would you like to reboot after the update? (yes/no): " update_confirm
     
     if [[ "$update_confirm" == "yes" ]]; then
