@@ -9,12 +9,12 @@ Mac Maintainer is a collection of tools is intended to update and maintain Mac O
   <li>Check users logged on to the system using the <i>who</i> command.</li>
   <li>Boot a specific user from the machine based on a list of current uses, again <i>who</i>, followed by a <i>pkill</i> command.</li>
   <li>Update a user's password. This comes from a list of active user accounts and is enacted via Apple's built-in /usr/bin/pwpolicy tool. [Admin rights required]</li>
+  <li>Create a local account with admin access.</li>
   <li>Prune user accounts that have not logged in in over 30 days.</li>
-  <li>Check for Filevault Disk Encryption.</li>
+  <li>Check for and disable Filevault Disk Encryption.</li>
   <li>Disable notifications regarding Filevault encryption.</li>
   <li>Check for macOS updates and apply them.</li>
-  <li>Update Mac OS to a specific build version (based on the update name). [i.e., macOS Tahoe 26.2-25C56]</li>
-  <li>Finally, a combination of Prune, Disable FileVault Notifications, and Update macOS.</li>
+  <li>Update Mac OS to a specific build version (based on the update name).</li>
 </ul>
 
 <h2>To install and run:</h2>
